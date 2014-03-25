@@ -58,10 +58,31 @@ module.exports = function(grunt) {
 
       var chars = '--chars="' + options.font.chars + '"';
 
-      subset([ chars, src, destp1 ], function() {
-        obfuscate([ '--all', destp1, dest ], function() {
+      grunt.log.write('Subsetting ' + ttf[0] + '... ');
+      subset([ chars, src, destp1 ], function(code) {
+        if (code !== 0) {
+          grunt.log.error();
+          grunt.fail.fatal('Error subsetting font (code: ' + code + ').');
+        }
+        grunt.log.ok();
+        grunt.log.write('Obfuscating... ');
+        obfuscate([ '--all', destp1, dest ], function(code) {
+          if (code !== 0) {
+            grunt.log.error();
+            grunt.fail.fatal('Error obfuscating font (code: ' + code + ').');
+          }
+          grunt.log.ok();
           grunt.file.delete(destp1);
-          webify([ dest ], finish);
+          grunt.log.write('Generating web fonts... ');
+          webify([ dest ], function(code) {
+            if (code !== 0) {
+              grunt.log.error();
+              grunt.fail.fatal('Error generating web font (code: ' + code +
+                ').');
+            }
+            grunt.log.ok();
+            finish();
+          });
         });
       });
     });
@@ -74,8 +95,6 @@ function subset(args, callback) {
   var subset = spawn('./subset.pl', args, {
     cwd: fontOptimizer
   });
-  subset.stdout.pipe(process.stdout);
-  subset.stderr.pipe(process.stderr);
   subset.on('close', callback);
 }
 
@@ -83,14 +102,10 @@ function obfuscate(args, callback) {
   var obfuscate = spawn('./obfuscate-font.pl', args, {
     cwd: fontOptimizer
   });
-  obfuscate.stdout.pipe(process.stdout);
-  obfuscate.stderr.pipe(process.stderr);
   obfuscate.on('close', callback);
 }
 
 function webify(args, callback) {
   var obfuscate = spawn(webifyPath, args);
-  obfuscate.stdout.pipe(process.stdout);
-  obfuscate.stderr.pipe(process.stderr);
   obfuscate.on('close', callback);
 }
