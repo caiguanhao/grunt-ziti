@@ -1,0 +1,29 @@
+{
+  "name": "grunt-ziti",
+  "version": "0.0.0",
+  "description": "Subsetting, optimizing and converting large font files to smaller web fonts.",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caiguanhao/grunt-ziti.git"
+  },
+  "keywords": [
+    "subset",
+    "optimize",
+    "convert",
+    "font",
+    "web"
+  ],
+  "author": "Cai Guanhao <caiguanhao@gmail.com> (Choi Goon-ho)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/caiguanhao/grunt-ziti/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-clean": "~0.5.0"
+  }
+}

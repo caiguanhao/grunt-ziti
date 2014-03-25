@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>TEST</title>
+<link rel="stylesheet" href="index.css">
+<style>
+  @font-face {
+    font-family: 'my-ziti-svg';
+    src: url('my-ziti.svg') format('svg');
+  }
+  @font-face {
+    font-family: 'my-ziti-eot';
+    src: url('my-ziti.eot');
+  }
+  @font-face {
+    font-family: 'my-ziti-woff';
+    src: url('my-ziti.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'my-ziti-ttf';
+    src: url('my-ziti.ttf') format('truetype');
+  }
+  .my-ziti-svg,  [data-text-svg],  .svg,  .words-svg  {
+    font-family: 'my-ziti-svg';
+  }
+  .my-ziti-eot,  [data-text-eot],  .eot,  .words-eot  {
+    font-family: 'my-ziti-eot';
+  }
+  .my-ziti-woff, [data-text-woff], .woff, .words-woff {
+    font-family: 'my-ziti-woff';
+  }
+  .my-ziti-ttf,  [data-text-ttf],  .ttf,  .words-ttf  {
+    font-family: 'my-ziti-ttf';
+  }
+  table {
+    margin: 0 auto;
+  }
+  td {
+    padding: 5px 20px;
+  }
+</style>
+</head>
+
+<body>
+  <table>
+    <thead>
+      <tr>
+        <td><h1>SVG</h1></td>
+        <td><h1>EOT</h1></td>
+        <td><h1>WOFF</h1></td>
+        <td><h1>TFF</h1></td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><p class="my-ziti my-ziti-svg">字形（glyph）</p></td>
+        <td><p class="my-ziti my-ziti-eot">字形（glyph）</p></td>
+        <td><p class="my-ziti my-ziti-woff">字形（glyph）</p></td>
+        <td><p class="my-ziti my-ziti-ttf">字形（glyph）</p></td>
+      </tr>
+      <tr>
+        <td><div data-text data-text-svg="字体（typeface）"></div></td>
+        <td><div data-text data-text-eot="字体（typeface）"></div></td>
+        <td><div data-text data-text-woff="字体（typeface）"></div></td>
+        <td><div data-text data-text-ttf="字体（typeface）"></div></td>
+      </tr>
+      <tr>
+        <td><h2 class="svg">字型（font）</h2></td>
+        <td><h2 class="eot">字型（font）</h2></td>
+        <td><h2 class="woff">字型（font）</h2></td>
+        <td><h2 class="ttf">字型（font）</h2></td>
+      </tr>
+      <tr>
+        <td><h3 class="svg"></h3></td>
+        <td><h3 class="eot"></h3></td>
+        <td><h3 class="woff"></h3></td>
+        <td><h3 class="ttf"></h3></td>
+      </tr>
+      <tr>
+        <td><em class="words-svg">字体</em></td>
+        <td><em class="words-eot">字体</em></td>
+        <td><em class="words-woff">字体</em></td>
+        <td><em class="words-ttf">字体</em></td>
+      </tr>
+    </tbody>
+  </table>
+  <script src="index.js"></script>
+</body>
+
+</html>
