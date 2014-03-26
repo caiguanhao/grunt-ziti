@@ -56,7 +56,9 @@ module.exports = function(grunt) {
       var dest = path.resolve(file.dest);
       var destp1 = dest + '.p1';
 
-      var chars = '--chars="' + options.font.chars + '"';
+      grunt.file.write(destp1, options.font.chars);
+
+      var chars = '--charsfile=' + destp1;
 
       grunt.log.write('Subsetting ' + ttf[0] + '... ');
       subset([ chars, src, destp1 ], function(code) {
