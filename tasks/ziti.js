@@ -14,6 +14,13 @@ module.exports = function(grunt) {
     }
 
     var finish = this.async();
+    var files = this.files;
+    var options = this.options();
+
+    var regexTTF = new RegExp('\.ttf$', 'i');
+    var regexHTML = new RegExp('\.html?$', 'i');
+    var regexJS = new RegExp('\.js$', 'i');
+    var regexCSS = new RegExp('\.css$', 'i');
 
     Q.
     fcall(function() {
@@ -33,109 +40,145 @@ module.exports = function(grunt) {
       process.stdout.write((bundle.done / bundle.total * 100).toFixed(2) +
         '%, ' + bundle.done + ' of ' + bundle.total + ' bytes downloaded... ');
     }).
-    then(function() {
-      finish();
-    }).
     catch(function(e) {
       grunt.fail.fatal(e);
-    });
+    }).
+    then(function() {
+      var bundle = [];
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
 
-    /*
-    var regexTTF = new RegExp('\.ttf$', 'i');
-    var regexHTML = new RegExp('\.html?$', 'i');
-    var regexJS = new RegExp('\.js$', 'i');
-    var regexCSS = new RegExp('\.css$', 'i');
+        var ttf = [];
+        var html = [];
+        var js = [];
+        var css = [];
 
-    var options = this.options();
-
-    this.files.forEach(function(file) {
-
-      var ttf = [];
-      var html = [];
-      var js = [];
-      var css = [];
-
-      file.src.forEach(function(p) {
-        if (regexTTF.test(p)) {
-          return ttf.push(p);
-        } else if (regexHTML.test(p)) {
-          return html.push(p);
-        } else if (regexJS.test(p)) {
-          return js.push(p);
-        } else if (regexCSS.test(p)) {
-          return css.push(p);
-        }
-      });
-
-      if (ttf.length === 0) {
-        return grunt.log.warn('Can\'t find any TTF file.');
-      } else if (ttf.length > 1) {
-        grunt.log.warn('There are ' + ttf.length + ' TTF files. Only ' +
-          ttf[0] + ' will be used.');
-      } else if (ttf[0] === file.dest) {
-        return grunt.log.warn('It\'s not recommended to overwrite the ' +
-          'TTF source file.');
-      }
-
-      var src = path.resolve(ttf[0]);
-      var dest = path.resolve(file.dest);
-      var destp1 = dest + '.p1';
-
-      grunt.file.write(destp1, options.font.chars);
-
-      var chars = '--charsfile=' + destp1;
-
-      grunt.log.write('Subsetting ' + ttf[0] + '... ');
-      subset([ chars, src, destp1 ], function(code) {
-        if (code !== 0) {
-          grunt.log.error();
-          grunt.fail.fatal('Error subsetting font (code: ' + code + ').');
-        }
-        grunt.log.ok();
-        grunt.log.write('Obfuscating... ');
-        obfuscate([ '--all', destp1, dest ], function(code) {
-          if (code !== 0) {
-            grunt.log.error();
-            grunt.fail.fatal('Error obfuscating font (code: ' + code + ').');
+        for (var j = 0; j < file.src.length; j++) {
+          var src = file.src[j];
+          if (regexTTF.test(src)) {
+            ttf.push(src);
+          } else if (regexHTML.test(src)) {
+            html.push(src);
+          } else if (regexJS.test(src)) {
+            js.push(src);
+          } else if (regexCSS.test(src)) {
+            css.push(src);
           }
-          grunt.log.ok();
-          grunt.file.delete(destp1);
-          grunt.log.write('Generating web fonts... ');
-          webify([ dest ], function(code) {
-            if (code !== 0) {
-              grunt.log.error();
-              grunt.fail.fatal('Error generating web font (code: ' + code +
-                ').');
-            }
-            grunt.log.ok();
-            finish();
-          });
+        }
+
+        if (ttf.length === 0) {
+          grunt.fail.fatal('Can\'t find any TTF file.');
+        } else if (ttf.length > 1) {
+          grunt.log.warn('There are ' + ttf.length + ' TTF files. Only ' +
+            ttf[0] + ' will be used.');
+        } else if (ttf[0] === file.dest) {
+          grunt.fail.fatal('It\'s not recommended to overwrite the ' +
+            'TTF source file.');
+        }
+
+        var src = path.resolve(ttf[0]);
+        var dest = path.resolve(file.dest);
+
+        bundle.push({
+          originalSrc: ttf[0],
+          src: src,
+          dest: dest,
+          destp1: dest + '.p1',
+          html: html,
+          css: css,
+          js: js
         });
-      });
+
+        grunt.file.write(dest + '.p1', options.font.chars);
+      }
+      return bundle;
+    }).
+    then(function(bundle) {
+      return bundle.reduce(function(previous, current) {
+        return previous.then(function() {
+          return [subset, obfuscate, webify, clean].reduce(Q.when, Q(current));
+        });
+      }, Q());
+    }).
+    progress(function(bundle) {
+      grunt.log[bundle[0]].apply(null, bundle.slice(1));
+    }).
+    catch(function(error) {
+      grunt.fail.fatal(error);
+    }).
+    then(function(bundle) {
+      finish();
     });
-    */
 
   });
+
+  function clean(bundle) {
+    grunt.file.delete(bundle.destp1);
+    return bundle;
+  }
 
 };
 
-function subset(args, callback) {
-  var subset = spawn('./subset.pl', args, {
+function subset(bundle) {
+  var deferred = Q.defer();
+  setTimeout(function() {
+    deferred.notify([ 'write', 'Subsetting ' + bundle.originalSrc + '... ' ]);
+  }, 0);
+  var subset = spawn('./subset.pl', [
+    '--charsfile=' + bundle.destp1, bundle.src, bundle.destp1
+  ], {
     cwd: fontOptimizer
   });
-  subset.on('close', callback);
+  subset.on('close', function(code) {
+    if (code === 0) {
+      deferred.notify([ 'ok' ]);
+      deferred.resolve(bundle);
+    } else {
+      deferred.notify([ 'error' ]);
+      deferred.reject('subset exited with code: ' + code);
+    }
+  });
+  return deferred.promise;
 }
 
-function obfuscate(args, callback) {
-  var obfuscate = spawn('./obfuscate-font.pl', args, {
+function obfuscate(bundle) {
+  var deferred = Q.defer();
+  setTimeout(function() {
+    deferred.notify([ 'write', 'Obfuscating... ' ]);
+  }, 0);
+  var obfuscate = spawn('./obfuscate-font.pl', [
+    '--all', bundle.destp1, bundle.dest
+  ], {
     cwd: fontOptimizer
   });
-  obfuscate.on('close', callback);
+  obfuscate.on('close', function(code) {
+    if (code === 0) {
+      deferred.notify([ 'ok' ]);
+      deferred.resolve(bundle);
+    } else {
+      deferred.notify([ 'error' ]);
+      deferred.reject('obfuscate exited with code: ' + code);
+    }
+  });
+  return deferred.promise;
 }
 
-function webify(args, callback) {
-  var obfuscate = spawn(webifyPath, args);
-  obfuscate.on('close', callback);
+function webify(bundle) {
+  var deferred = Q.defer();
+  setTimeout(function() {
+    deferred.notify([ 'write', 'Generating web fonts... ' ]);
+  }, 0);
+  var obfuscate = spawn(webifyPath, [ bundle.dest ]);
+  obfuscate.on('close', function(code) {
+    if (code === 0) {
+      deferred.notify([ 'ok' ]);
+      deferred.resolve(bundle);
+    } else {
+      deferred.notify([ 'error' ]);
+      deferred.reject('webify exited with code: ' + code);
+    }
+  });
+  return deferred.promise;
 }
 
 function download(url, path, chmod) {
