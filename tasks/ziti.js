@@ -96,9 +96,9 @@ module.exports = function(grunt) {
       return bundle.reduce(function(previous, current) {
         return previous.then(function() {
           return [
-            gettextHTML,
-            gettextJS,
-            gettextCSS,
+            gettext('html'),
+            gettext('js'),
+            gettext('css'),
             writeCharsFile,
             subset,
             obfuscate,
@@ -131,28 +131,20 @@ module.exports = function(grunt) {
     return bundle;
   }
 
-  function gettextHTML(bundle) {
-    return bundle.html.reduce(function(previous, current) {
-      return previous.then(function() {
-        return gettextHTMLContent(bundle, grunt.file.read(current));
-      });
-    }, Q());
-  }
+  var gettextFunctions = {
+    html: gettextHTMLContent,
+    js:   gettextJSContent,
+    css:  gettextCSSContent
+  };
 
-  function gettextJS(bundle) {
-    return bundle.js.reduce(function(previous, current) {
-      return previous.then(function() {
-        return gettextJSContent(bundle, grunt.file.read(current));
-      });
-    }, Q());
-  }
-
-  function gettextCSS(bundle) {
-    return bundle.css.reduce(function(previous, current) {
-      return previous.then(function() {
-        return gettextCSSContent(bundle, grunt.file.read(current));
-      });
-    }, Q());
+  function gettext(filetype) {
+    return function(bundle) {
+      return bundle[filetype].reduce(function(previous, current) {
+        return previous.then(function() {
+          return gettextFunctions[filetype](bundle, grunt.file.read(current));
+        });
+      }, Q());
+    };
   }
 
 };
