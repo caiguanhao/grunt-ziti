@@ -346,7 +346,7 @@ function download(url, path, chmod) {
   http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
-      deferred.notify([ 'writeln', 'Redirected to:\n' + url ]);
+      deferred.notify([ 'ok', 'Redirected to: ' + url ]);
       return deferred.resolve(download(url, path, chmod));
     } else if (res.statusCode !== 200) {
       return deferred.reject('Fail to download. Status: ' + res.statusCode);
@@ -366,7 +366,7 @@ function download(url, path, chmod) {
     res.on('end', function() {
       file.end();
       deferred.notify([ 'writeln' ]);
-      deferred.notify([ 'writeln', 'Download complete.' ]);
+      deferred.notify([ 'ok', 'Download completed: ' + path ]);
       if (chmod) {
         fs.chmodSync(path, chmod);
       }
@@ -380,16 +380,17 @@ function webifyURL() {
   var url = 'http://sourceforge.net/projects/webify/files';
   switch (process.platform) {
   case 'darwin':
-    url += '/mac/webify'
+    url += '/mac/webify-0.1.6.0'
     break;
   case 'linux':
-    url += (process.arch === 'x64' ? '/linux' : '/linux32') + '/webify'
+    url += (process.arch === 'x64' ? '/linux' : '/linux32') + '/webify-0.1.6.0'
     break;
   case 'win32':
-    url += '/windows/webify.exe'
+    url += '/windows/webify-0.1.6.0.exe'
     break;
   default:
     grunt.fail.fatal('Can\'t download webify.');
   }
+  url += '/download';
   return url;
 }
