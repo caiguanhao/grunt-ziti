@@ -364,6 +364,7 @@ function download(url, path, chmod) {
         done + ' of ' + total + ' bytes downloaded... ' ]);
     });
     res.on('end', function() {
+      file.end();
       deferred.notify([ 'writeln' ]);
       deferred.notify([ 'writeln', 'Download complete.' ]);
       if (chmod) {
