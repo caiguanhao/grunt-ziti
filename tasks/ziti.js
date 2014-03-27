@@ -97,6 +97,7 @@ module.exports = function(grunt) {
         return previous.then(function() {
           return [
             gettextHTML,
+            gettextJS,
             writeCharsFile,
             subset,
             obfuscate,
@@ -133,6 +134,14 @@ module.exports = function(grunt) {
     return bundle.html.reduce(function(previous, current) {
       return previous.then(function() {
         return gettextHTMLContent(bundle, grunt.file.read(current));
+      });
+    }, Q());
+  }
+
+  function gettextJS(bundle) {
+    return bundle.js.reduce(function(previous, current) {
+      return previous.then(function() {
+        return gettextJSContent(bundle, grunt.file.read(current));
       });
     }, Q());
   }
@@ -192,6 +201,39 @@ function gettextHTMLContent(bundle, content) {
   parser.end();
   return deferred.promise;
 }
+
+function gettextJSContent(bundle, content) {
+  var jsOptions = bundle.options.js || {};
+  var funcs = jsOptions.functions || [];
+  if (funcs.length > 0) {
+    var funcNames = funcs.map(function(f) {
+      return escapeRegex(f);
+    });
+    var regex = '(' + funcNames.join('|') + ')' +
+      '[\\s\\t]*\\([\\s\\t]*([\'"])([\\S\\s]+?)\\2[\\s\\t]*\\)';
+    var m = content.match(new RegExp(regex, 'g'));
+    for (var i = 0; i < m.length; i++) {
+      var t = m[i];
+      // turn oneline concat string to multiline
+      var s = t.split(/['"]/);
+      s = s.map(function(S) {
+        return /^[\s\t]*\+[\s\t]*$/.test(S) ?
+          S.replace(/[\s\t]{1,}/g, '\n') : S });
+      t = s.join('"');
+      // multiline string:
+      t = t.replace(/['"][\s\t]*\+[\s\t]*$/mg, '');
+      t = t.replace(/^[\s\t]*['"][\s\t]*/mg, '');
+      t = t.replace(/\n/g, '');
+      t = t.match(new RegExp(regex));
+      addChars(bundle, t[3]);
+    }
+  }
+  return bundle;
+}
+
+function escapeRegex(string) {
+  return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+};
 
 function hasClass(classNames, className) {
   classNames = (' ' + classNames + ' ').replace(/[\t\r\n\f]/g, ' ');
