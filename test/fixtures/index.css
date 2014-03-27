@@ -1,5 +1,14 @@
 @charset "UTF-8";
 
 .words:before {
-  content: '标准';
+  content: '正规';
+}
+
+@media screen and (min-width: 1024px) {
+  .words:before {
+    content: '非标准'
+    ;content: '}';
+    content: '标'        "准"
+    '的' ;
+  }
 }

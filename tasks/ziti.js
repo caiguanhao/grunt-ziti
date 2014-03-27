@@ -98,6 +98,7 @@ module.exports = function(grunt) {
           return [
             gettextHTML,
             gettextJS,
+            gettextCSS,
             writeCharsFile,
             subset,
             obfuscate,
@@ -142,6 +143,14 @@ module.exports = function(grunt) {
     return bundle.js.reduce(function(previous, current) {
       return previous.then(function() {
         return gettextJSContent(bundle, grunt.file.read(current));
+      });
+    }, Q());
+  }
+
+  function gettextCSS(bundle) {
+    return bundle.css.reduce(function(previous, current) {
+      return previous.then(function() {
+        return gettextCSSContent(bundle, grunt.file.read(current));
       });
     }, Q());
   }
@@ -226,6 +235,51 @@ function gettextJSContent(bundle, content) {
       t = t.replace(/\n/g, '');
       t = t.match(new RegExp(regex));
       addChars(bundle, t[3]);
+    }
+  }
+  return bundle;
+}
+
+function gettextCSSContent(bundle, content) {
+  var cssOptions = bundle.options.css || {};
+  var selectors = cssOptions.selectors || [];
+  if (selectors.length === 0) return bundle;
+
+  selectors = selectors.map(function(s) { return escapeRegex(s); });
+
+  var blank = '[\\s\\t\\n\\r\\f]{0,}';
+  var rules = '[;{}]' + blank + '(' + selectors.join('|') + ')' + blank +
+    '(\\{[\\S\\s]+?\\})';
+  var rulesRegExp = new RegExp(rules);
+  var rulesRegExpGlobal = new RegExp(rules, 'g');
+
+  var contentProp = 'content:' + blank + '[\'"]([\\S\\s]+?)[\'"]' + blank +
+    '[;}]';
+  var contentRegExp = new RegExp(contentProp);
+  var contentRegExpGlobal = new RegExp(contentProp, 'g');
+
+  var split = new RegExp('[\'"][\\s\\t]{0,}[\'"]');
+
+  content = ';' + content;
+  // replace '}' in strings to NULL to not match them in rulesRegExp
+  content = content.replace(/(['"])(.+?|)\}(.+?|)\1/g, '$1$2\x00$3$1');
+
+  var m = content.match(rulesRegExpGlobal);
+  for (var i = 0; i < m.length; i++) {
+    t = m[i].match(rulesRegExp);
+    var c = t[2].match(contentRegExpGlobal);
+    for (var j = c.length - 1; j >= 0; j--) {
+      var a = c[j].match(contentRegExp);
+      var s = a[1].replace(/\x00/g, '}').split(split).join('');
+
+      // skip invalid property value:
+      if (/['"]$/.test(s) || /\n|\r|\f/.test(s)) continue;
+
+      s = s.replace(/[\s\t]{0,}/g, '');
+      if (s) {
+        addChars(bundle, s);
+        break; // only use last valid property value
+      }
     }
   }
   return bundle;
