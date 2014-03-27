@@ -27,6 +27,7 @@
     "grunt-contrib-clean": "~0.5.0"
   },
   "dependencies": {
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "htmlparser2": "~3.7.1"
   }
 }

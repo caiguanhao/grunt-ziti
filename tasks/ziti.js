@@ -84,19 +84,25 @@ module.exports = function(grunt) {
           src: src,
           dest: dest,
           destp1: dest + '.p1',
+          options: options,
           html: html,
           css: css,
           js: js
         });
-
-        grunt.file.write(dest + '.p1', options.font.chars);
       }
       return bundle;
     }).
     then(function(bundle) {
       return bundle.reduce(function(previous, current) {
         return previous.then(function() {
-          return [subset, obfuscate, webify, clean].reduce(Q.when, Q(current));
+          return [
+            gettext_html,
+            writeCharsFile,
+            subset,
+            obfuscate,
+            webify,
+            clean
+          ].reduce(Q.when, Q(current));
         });
       }, Q());
     }).
@@ -112,12 +118,68 @@ module.exports = function(grunt) {
 
   });
 
+  function writeCharsFile(bundle) {
+    grunt.log.writeln('Characters: ' + bundle.chars);
+    grunt.file.write(bundle.destp1, bundle.chars);
+    return bundle;
+  }
+
   function clean(bundle) {
     grunt.file.delete(bundle.destp1);
     return bundle;
   }
 
+  function gettext_html(bundle) {
+    return bundle.html.reduce(function(previous, current) {
+      return previous.then(function() {
+        return gettext_html_content(bundle, grunt.file.read(current));
+      });
+    }, Q());
+  }
+
 };
+
+function gettext_html_content(bundle, content) {
+  var htmlparser = require('htmlparser2');
+  var htmlOptions = bundle.options.html || {};
+  var deferred = Q.defer();
+  var add = false;
+  var parser = new htmlparser.Parser({
+    onopentag: function(name, attribs) {
+      add = false;
+      var classes = htmlOptions.classes || [];
+      for (var i = 0; i < classes.length; i++) {
+        if (hasClass(attribs.class, classes[i])) {
+          add = true;
+          return;
+        }
+      }
+    },
+    ontext: function(text) {
+      if (add !== true) return;
+      bundle.chars = bundle.chars || '';
+      var string = text.trim();
+      var i = 0, l = string.length;
+      for (; i < l; i++) {
+        if (bundle.chars.indexOf(string[i]) === -1) {
+          bundle.chars += string[i];
+        }
+      }
+    },
+    onend: function() {
+      deferred.resolve(bundle);
+    }
+  });
+  parser.write(content);
+  parser.end();
+  return deferred.promise;
+}
+
+function hasClass(classNames, className) {
+  classNames = (' ' + classNames + ' ').replace(/[\t\r\n\f]/g, ' ');
+  className = ' ' + className + ' ';
+  return classNames.indexOf(className) !== -1;
+}
 
 function subset(bundle) {
   var deferred = Q.defer();

@@ -21,8 +21,7 @@ module.exports = function(grunt) {
           font: {
             subset: true,
             optimize: true,
-            convert: true,
-            chars: "字形（glyph）字体（typeface）字型（font）名称标准"
+            convert: true
           }
         },
         files: {
