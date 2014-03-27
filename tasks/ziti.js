@@ -31,15 +31,6 @@ module.exports = function(grunt) {
         return download(url, webifyPath, 0755);
       }
     }).
-    progress(function(bundle) {
-      if (typeof bundle === 'string') {
-        return grunt.log.writeln('Redirected to:\n' + bundle);
-      }
-      process.stdout.clearLine();
-      process.stdout.cursorTo(0);
-      process.stdout.write((bundle.done / bundle.total * 100).toFixed(2) +
-        '%, ' + bundle.done + ' of ' + bundle.total + ' bytes downloaded... ');
-    }).
     catch(function(e) {
       grunt.fail.fatal(e);
     }).
@@ -279,7 +270,7 @@ function gettextCSSContent(bundle, content) {
 
 function escapeRegex(string) {
   return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-};
+}
 
 function hasClass(classNames, className) {
   classNames = (' ' + classNames + ' ').replace(/[\t\r\n\f]/g, ' ');
@@ -355,7 +346,7 @@ function download(url, path, chmod) {
   http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
-      deferred.notify(url);
+      deferred.notify([ 'writeln', 'Redirected to:\n' + url ]);
       return deferred.resolve(download(url, path, chmod));
     } else if (res.statusCode !== 200) {
       return deferred.reject('Fail to download. Status: ' + res.statusCode);
@@ -367,12 +358,14 @@ function download(url, path, chmod) {
     res.on('data', function(data) {
       file.write(data);
       done += data.length;
-      deferred.notify({
-        done: done,
-        total: total
-      });
+      process.stdout.clearLine();
+      process.stdout.cursorTo(0);
+      deferred.notify([ 'write', (done / total * 100).toFixed(2) + '%, ' +
+        done + ' of ' + total + ' bytes downloaded... ' ]);
     });
     res.on('end', function() {
+      deferred.notify([ 'writeln' ]);
+      deferred.notify([ 'writeln', 'Download complete.' ]);
       if (chmod) {
         fs.chmodSync(path, chmod);
       }
