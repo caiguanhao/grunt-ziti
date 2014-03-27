@@ -96,7 +96,7 @@ module.exports = function(grunt) {
       return bundle.reduce(function(previous, current) {
         return previous.then(function() {
           return [
-            gettext_html,
+            gettextHTML,
             writeCharsFile,
             subset,
             obfuscate,
@@ -129,10 +129,10 @@ module.exports = function(grunt) {
     return bundle;
   }
 
-  function gettext_html(bundle) {
+  function gettextHTML(bundle) {
     return bundle.html.reduce(function(previous, current) {
       return previous.then(function() {
-        return gettext_html_content(bundle, grunt.file.read(current));
+        return gettextHTMLContent(bundle, grunt.file.read(current));
       });
     }, Q());
   }
@@ -149,7 +149,7 @@ function addChars(bundle, string) {
   }
 }
 
-function gettext_html_content(bundle, content) {
+function gettextHTMLContent(bundle, content) {
   var htmlparser = require('htmlparser2');
   var htmlOptions = bundle.options.html || {};
   var deferred = Q.defer();
