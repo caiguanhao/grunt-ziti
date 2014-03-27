@@ -24,16 +24,16 @@
     src: url('my-ziti.ttf') format('truetype');
   }
   .my-ziti-svg,  [data-text-svg],  .svg,  .words-svg  {
-    font-family: 'my-ziti-svg';
+    font-family: 'my-ziti-svg', 'Times New Roman';
   }
   .my-ziti-eot,  [data-text-eot],  .eot,  .words-eot  {
-    font-family: 'my-ziti-eot';
+    font-family: 'my-ziti-eot', 'Times New Roman';
   }
   .my-ziti-woff, [data-text-woff], .woff, .words-woff {
-    font-family: 'my-ziti-woff';
+    font-family: 'my-ziti-woff', 'Times New Roman';
   }
   .my-ziti-ttf,  [data-text-ttf],  .ttf,  .words-ttf  {
-    font-family: 'my-ziti-ttf';
+    font-family: 'my-ziti-ttf', 'Times New Roman';
   }
   table {
     margin: 0 auto;
@@ -62,10 +62,10 @@
         <td><p class="my-ziti my-ziti-ttf">字形（glyph）</p></td>
       </tr>
       <tr>
-        <td><div data-text data-text-svg="字体（typeface）"></div></td>
-        <td><div data-text data-text-eot="字体（typeface）"></div></td>
-        <td><div data-text data-text-woff="字体（typeface）"></div></td>
-        <td><div data-text data-text-ttf="字体（typeface）"></div></td>
+        <td><div data-text="字体（typeface）" data-text-svg></div></td>
+        <td><div data-text="字体（typeface）" data-text-eot></div></td>
+        <td><div data-text="字体（typeface）" data-text-woff></div></td>
+        <td><div data-text="字体（typeface）" data-text-ttf></div></td>
       </tr>
       <tr>
         <td><h2 class="svg">字型（font）</h2></td>
@@ -80,10 +80,10 @@
         <td><h3 class="ttf"></h3></td>
       </tr>
       <tr>
-        <td><em class="words-svg">字体</em></td>
-        <td><em class="words-eot">字体</em></td>
-        <td><em class="words-woff">字体</em></td>
-        <td><em class="words-ttf">字体</em></td>
+        <td><em class="words words-svg">字体</em></td>
+        <td><em class="words words-eot">字体</em></td>
+        <td><em class="words words-woff">字体</em></td>
+        <td><em class="words words-ttf">字体</em></td>
       </tr>
     </tbody>
   </table>

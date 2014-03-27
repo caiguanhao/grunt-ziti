@@ -139,31 +139,49 @@ module.exports = function(grunt) {
 
 };
 
+function addChars(bundle, string) {
+  bundle.chars = bundle.chars || '';
+  var i = 0, l = string.length;
+  for (; i < l; i++) {
+    if (bundle.chars.indexOf(string[i]) === -1) {
+      bundle.chars += string[i];
+    }
+  }
+}
+
 function gettext_html_content(bundle, content) {
   var htmlparser = require('htmlparser2');
   var htmlOptions = bundle.options.html || {};
   var deferred = Q.defer();
-  var add = false;
+  var addText = false;
   var parser = new htmlparser.Parser({
     onopentag: function(name, attribs) {
-      add = false;
+      addText = false;
+
+      var elements = htmlOptions.elements || [];
+      for (var i = 0; i < elements.length; i++) {
+        if (name === elements[i]) {
+          return addText = true;
+        }
+      }
+
       var classes = htmlOptions.classes || [];
       for (var i = 0; i < classes.length; i++) {
         if (hasClass(attribs.class, classes[i])) {
-          add = true;
-          return;
+          return addText = true;
+        }
+      }
+
+      var attributes = htmlOptions.attributes || [];
+      for (var i = 0; i < attributes.length; i++) {
+        if (attribs.hasOwnProperty(attributes[i])) {
+          return addChars(bundle, attribs[attributes[i]]);
         }
       }
     },
     ontext: function(text) {
-      if (add !== true) return;
-      bundle.chars = bundle.chars || '';
-      var string = text.trim();
-      var i = 0, l = string.length;
-      for (; i < l; i++) {
-        if (bundle.chars.indexOf(string[i]) === -1) {
-          bundle.chars += string[i];
-        }
+      if (addText === true) {
+        return addChars(bundle, text.trim());
       }
     },
     onend: function() {
