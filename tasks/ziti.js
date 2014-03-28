@@ -292,30 +292,37 @@ function gettextCSSContent(bundle, content) {
 
   selectors = selectors.map(function(s) { return escapeRegex(s); });
 
-  var rules = '[;{}]' + BLANK + '(' + selectors.join('|') + ')' + BLANK +
-    '\\{([\\S\\s]+?)\\}';
-  var rulesRegExp = new RegExp(rules);
-  var rulesRegExpGlobal = new RegExp(rules, 'g');
-
-  var contentProp = new RegExp('^' + BLANK +'content\\:' + BLANK +
+  var rulesRegExp = new RegExp('[;{}]' + BLANK + '(' + selectors.join('|') +
+    ')' + BLANK + '\\{([\\S\\s]+?)$');
+  var contentPropRegExp = new RegExp('^' + BLANK +'content\\:' + BLANK +
     '[\'"]([\\S\\s]+?)[\'"]' + BLANK + '$');
+  var splitRegExp = new RegExp('[\'"][\\s\\t]{0,}[\'"]');
 
-  var split = new RegExp('[\'"][\\s\\t]{0,}[\'"]');
-
-  content = ';' + content;
+  // remove comments
+  var cont = [], start = 0, end = 0, cursor = 0;
+  for (; end < content.length;) {
+    start = content.indexOf('/*', cursor);
+    end = content.indexOf('*/', start + 2);
+    if (start === -1 || end === -1) break;
+    cont.push(content.substring(cursor, start));
+    cursor = end + 2;
+  }
+  if (cont.length > 0) {
+    content = cont.join('') + content.substring(cursor, content.length);
+  }
   // replace '}' in strings to NULL to not match them in rulesRegExp
   content = content.replace(/(['"])(.+?|)\}(.+?|)\1/g, '$1$2\x00$3$1');
 
-  var m = content.match(rulesRegExpGlobal) || [];
+  var m = content.split('}');
   for (var i = 0; i < m.length; i++) {
-    t = m[i].match(rulesRegExp);
+    t = (';' + m[i]).match(rulesRegExp);
     if (!t) continue;
     t = t[2].replace(/(['"])(.+?|);(.+?|)\1/g, '$1$2\x01$3$1').split(';');
     for (var j = t.length - 1; j >= 0; j--) {
-      var a = t[j].trim().match(contentProp);
+      var a = t[j].trim().match(contentPropRegExp);
       if (!a) continue;
       var s = a[1].replace(/\x00/g, '}').replace(/\x01/g, ';');
-      s = s.split(split).join('');
+      s = s.split(splitRegExp).join('');
 
       // skip invalid property value:
       if (/['"]$/.test(s) || /\n|\r|\f/.test(s)) continue;
