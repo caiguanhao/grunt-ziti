@@ -4,7 +4,7 @@
   "description": "Subsetting, optimizing and converting large font files to smaller web fonts.",
   "main": "index.js",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt test"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,9 @@
   },
   "devDependencies": {
     "grunt": "~0.4.4",
-    "grunt-contrib-clean": "~0.5.0"
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-connect": "~0.7.1"
   },
   "dependencies": {
     "q": "~1.0.1",

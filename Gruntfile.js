@@ -25,7 +25,7 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          'test/fixtures/my-ziti.ttf': [
+          'test/tmp/my-ziti.ttf': [
             'test/fixtures/index.html',
             'test/fixtures/index.js',
             'test/fixtures/index.css',
@@ -33,14 +33,42 @@ module.exports = function(grunt) {
           ]
         }
       }
+    },
+    connect: {
+      test: {
+        options: {
+          hostname: '*',
+          port: 3000,
+          base: [ 'test' ]
+        }
+      }
+    },
+    watch: {
+      options: {
+        livereload: true
+      },
+      test: {
+        files: [ 'test/fixtures/*' ],
+        tasks: [ 'ziti' ]
+      }
     }
   });
 
   grunt.loadTasks('tasks');
 
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('default', [ 'clean', 'download-font', 'ziti' ]);
+  grunt.registerTask('default', [
+    'clean',
+    'download-font',
+    'ziti',
+    'connect',
+    'watch'
+  ]);
+
+  grunt.registerTask('test', [ 'clean', 'download-font', 'ziti' ]);
 
   grunt.registerTask('download-font', 'Download TTF font', function() {
     var https = require('https');
