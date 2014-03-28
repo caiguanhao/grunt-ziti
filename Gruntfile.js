@@ -2,7 +2,7 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     clean: {
-      test: [ 'test/fixtures/my-ziti.*' ]
+      test: [ 'test/tmp/*' ]
     },
     ziti: {
       index: {

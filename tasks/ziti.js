@@ -210,6 +210,8 @@ function gettextJSContent(bundle, content) {
 
   var concat = '^' + BLANK + '\\+' + BLANK + '$';
   var concatRegExp = new RegExp(concat);
+  var concatRegExpStart = new RegExp('^' + BLANK + '\\+');
+  var concatRegExpEnd = new RegExp('\\+' + BLANK + '$');
 
   var mRegExp = new RegExp('[\'"]' + BLANK + '\\+' + BLANK + '$', 'mg');
   var mRegExp2 = new RegExp('(\\()' + BLANK + '([\'"])');
@@ -223,12 +225,13 @@ function gettextJSContent(bundle, content) {
     t = t.replace(/[^'"]+$/, ')');
     // turn oneline concat string to multiline
     var s = t.split(/['"]/);
-    s = s.map(function(S) {
-      if (concatRegExp.test(S)) {
-        return (' ' + S + ' ').replace(/[\s\t\n\r\f]{1,}/g, '\n');
+    for (var j = s.length - 1; j >= 0; j--) {
+      if (concatRegExp.test(s[j])) {
+        s[j] = (' ' + s[j] + ' ').replace(/[\s\t\n\r\f]{1,}/g, '\n');
+      } else if (concatRegExpStart.test(s[j]) && concatRegExpEnd.test(s[j])) {
+        s[j] = '\n+\n';
       }
-      return S;
-    });
+    }
     t = s.join('"');
     // multiline string:
     t = t.replace(mRegExp, '');
