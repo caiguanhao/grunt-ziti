@@ -10,6 +10,7 @@
     -moz-content: 'BAR';
   }
   .words:before {
+    /* ziti { 样式 } */
     content: '非标准'
     ;content: '};';
     content: '标'        "准"

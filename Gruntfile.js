@@ -18,7 +18,8 @@ module.exports = function(grunt) {
             comments: [ 'ziti' ]
           },
           css: {
-            selectors: [ '.words:before' ]
+            selectors: [ '.words:before' ],
+            comments: [ 'ziti' ]
           },
           font: {
             subset: true,

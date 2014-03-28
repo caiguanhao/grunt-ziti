@@ -262,7 +262,6 @@ function gettextJSFunctions(bundle, funcs, content) {
 }
 
 function gettextJSComments(bundle, comments, content) {
-
   var cont = '', start = 0, end = 0, cursor = 0;
   for (; end < content.length;) {
     start = content.indexOf('/*', cursor);
@@ -303,28 +302,45 @@ function gettextHTMLComments(bundle, comments, content) {
 function gettextCSSContent(bundle, content) {
   var cssOptions = bundle.options.css || {};
   var selectors = cssOptions.selectors || [];
-  if (selectors.length === 0) return bundle;
+  var comments = cssOptions.comments || [];
 
-  selectors = selectors.map(function(s) { return escapeRegex(s); });
-
-  var rulesRegExp = new RegExp('[;{}]' + BLANK + '(' + selectors.join('|') +
-    ')' + BLANK + '\\{([\\S\\s]+?)$');
   var contentPropRegExp = new RegExp('^' + BLANK +'content\\:' + BLANK +
     '[\'"]([\\S\\s]+?)[\'"]' + BLANK + '$');
   var splitRegExp = new RegExp('[\'"][\\s\\t]{0,}[\'"]');
 
-  // remove comments
-  var cont = [], start = 0, end = 0, cursor = 0;
+  // comments
+  var cont = [], comm = '', start = 0, end = 0, cursor = 0;
   for (; end < content.length;) {
     start = content.indexOf('/*', cursor);
     end = content.indexOf('*/', start + 2);
     if (start === -1 || end === -1) break;
     cont.push(content.substring(cursor, start));
+    comm += content.substring(start + 2, end);
     cursor = end + 2;
   }
+
+  if (comments.length > 0) {
+    var commentRegExp = NAME_DELIMETER + '(' + comments.join('|') + ')' +
+      BLANK + '\\{([\\S\\s]+?)\\}';
+    var blankRegExpGlobal = new RegExp(BLANK, 'g');
+    var m, c;
+    while (m = (' ' + comm).match(commentRegExp)) {
+      c = m[2].replace(blankRegExpGlobal, '');
+      addChars(bundle, c);
+      comm = comm.substr(m.index + m[0].length - 1);
+    }
+  }
+
+  if (selectors.length === 0) return bundle;
+
+  selectors = selectors.map(function(s) { return escapeRegex(s); });
+  var rulesRegExp = new RegExp('[;{}]' + BLANK + '(' + selectors.join('|') +
+    ')' + BLANK + '\\{([\\S\\s]+?)$');
+
   if (cont.length > 0) {
     content = cont.join('') + content.substring(cursor, content.length);
   }
+
   // replace '}' in strings to NULL to not match them in rulesRegExp
   content = content.replace(/(['"])(.+?|)\}(.+?|)\1/g, '$1$2\x00$3$1');
 
