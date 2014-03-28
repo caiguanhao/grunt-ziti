@@ -293,14 +293,12 @@ function gettextCSSContent(bundle, content) {
   selectors = selectors.map(function(s) { return escapeRegex(s); });
 
   var rules = '[;{}]' + BLANK + '(' + selectors.join('|') + ')' + BLANK +
-    '(\\{[\\S\\s]+?\\})';
+    '\\{([\\S\\s]+?)\\}';
   var rulesRegExp = new RegExp(rules);
   var rulesRegExpGlobal = new RegExp(rules, 'g');
 
-  var contentProp = 'content:' + BLANK + '[\'"]([\\S\\s]+?)[\'"]' + BLANK +
-    '[;}]';
-  var contentRegExp = new RegExp(contentProp);
-  var contentRegExpGlobal = new RegExp(contentProp, 'g');
+  var contentProp = new RegExp('^' + BLANK +'content\\:' + BLANK +
+    '[\'"]([\\S\\s]+?)[\'"]' + BLANK + '$');
 
   var split = new RegExp('[\'"][\\s\\t]{0,}[\'"]');
 
@@ -308,22 +306,25 @@ function gettextCSSContent(bundle, content) {
   // replace '}' in strings to NULL to not match them in rulesRegExp
   content = content.replace(/(['"])(.+?|)\}(.+?|)\1/g, '$1$2\x00$3$1');
 
-  var m = content.match(rulesRegExpGlobal);
+  var m = content.match(rulesRegExpGlobal) || [];
   for (var i = 0; i < m.length; i++) {
     t = m[i].match(rulesRegExp);
-    var c = t[2].match(contentRegExpGlobal);
-    for (var j = c.length - 1; j >= 0; j--) {
-      var a = c[j].match(contentRegExp);
-      var s = a[1].replace(/\x00/g, '}').split(split).join('');
+    if (!t) continue;
+    t = t[2].replace(/(['"])(.+?|);(.+?|)\1/g, '$1$2\x01$3$1').split(';');
+    for (var j = t.length - 1; j >= 0; j--) {
+      var a = t[j].trim().match(contentProp);
+      if (!a) continue;
+      var s = a[1].replace(/\x00/g, '}').replace(/\x01/g, ';');
+      s = s.split(split).join('');
 
       // skip invalid property value:
       if (/['"]$/.test(s) || /\n|\r|\f/.test(s)) continue;
 
       s = s.replace(/[\s\t]{0,}/g, '');
-      if (s) {
-        addChars(bundle, s);
-        break; // only use last valid property value
-      }
+      if (!s) continue;
+
+      addChars(bundle, s);
+      break; // only use last valid property value
     }
   }
   return bundle;

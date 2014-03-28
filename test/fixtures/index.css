@@ -7,8 +7,9 @@
 @media screen and (min-width: 1024px) {
   .words:before {
     content: '非标准'
-    ;content: '}';
+    ;content: '};';
     content: '标'        "准"
     '的' ;
+    -webkit-content: 'FOO';
   }
 }
