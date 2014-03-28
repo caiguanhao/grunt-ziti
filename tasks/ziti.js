@@ -203,7 +203,8 @@ function gettextHTMLContent(bundle, content) {
 }
 
 var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
-var NAME_DELIMETER = '[^A-Za-z0-9_$\xaa-\uff3f]';
+// see http://stackoverflow.com/a/9337047/855665
+var NAME_DELIMETER = '[^A-Za-z0-9_$\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\uff3f]';
 
 function gettextJSContent(bundle, content) {
   var jsOptions = bundle.options.js || {};
@@ -301,10 +302,16 @@ function gettextJSComments(bundle, comments, content) {
 function gettextHTMLComments(bundle, comments, content) {
   comments = comments.map(function(c) { return escapeRegex(c); });
   var comm = NAME_DELIMETER + '(' + comments.join('|') + ')' +
-    BLANK + '\\{([\\S\\s]+?)' + BLANK + '\\}' + BLANK;
-  var m = (' ' + content).match(comm);
-  if (!m) return;
-  addChars(bundle, m[2].replace(new RegExp(BLANK, 'g'), ''));
+    BLANK + '\\{([\\S\\s]+?)' + BLANK + '\\}';
+  var commRegExp = new RegExp(comm);
+  var commRegExpGlobal = new RegExp(comm, 'g');
+  content = content.replace(/\}/g, ' } ')
+  var m = (' ' + content).match(commRegExpGlobal) || [];
+  for (var i = 0; i < m.length; i++) {
+    var s = (' ' + m[i]).match(commRegExp);
+    if (!s) continue;
+    addChars(bundle, s[2].replace(new RegExp(BLANK, 'g'), ''));
+  }
 }
 
 function gettextCSSContent(bundle, content) {
