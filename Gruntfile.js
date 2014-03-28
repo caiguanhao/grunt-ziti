@@ -10,7 +10,8 @@ module.exports = function(grunt) {
           html: {
             classes: [ 'my-ziti' ],
             attributes: [ 'data-text' ],
-            elements: [ 'h2' ]
+            elements: [ 'h2' ],
+            comments: [ 'ziti' ]
           },
           js: {
             functions: [ '$ziti$' ],

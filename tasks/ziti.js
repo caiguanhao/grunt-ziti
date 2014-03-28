@@ -153,31 +153,39 @@ function addChars(bundle, string) {
 function gettextHTMLContent(bundle, content) {
   var htmlparser = require('htmlparser2');
   var htmlOptions = bundle.options.html || {};
+
+  var elements = htmlOptions.elements || [];
+  var classes = htmlOptions.classes || [];
+  var attributes = htmlOptions.attributes || [];
+  var comments = htmlOptions.comments || [];
+
   var deferred = Q.defer();
   var addText = false;
   var parser = new htmlparser.Parser({
     onopentag: function(name, attribs) {
       addText = false;
 
-      var elements = htmlOptions.elements || [];
       for (var i = 0; i < elements.length; i++) {
         if (name === elements[i]) {
           return addText = true;
         }
       }
 
-      var classes = htmlOptions.classes || [];
       for (var i = 0; i < classes.length; i++) {
         if (hasClass(attribs.class, classes[i])) {
           return addText = true;
         }
       }
 
-      var attributes = htmlOptions.attributes || [];
       for (var i = 0; i < attributes.length; i++) {
         if (attribs.hasOwnProperty(attributes[i])) {
           return addChars(bundle, attribs[attributes[i]]);
         }
+      }
+    },
+    oncomment: function(data) {
+      if (comments.length > 0) {
+        gettextHTMLComments(bundle, comments, data);
       }
     },
     ontext: function(text) {
@@ -283,6 +291,15 @@ function gettextJSComments(bundle, comments, content) {
       }
     }
   }
+}
+
+function gettextHTMLComments(bundle, comments, content) {
+  comments = comments.map(function(c) { return escapeRegex(c); });
+  var comm = '(' + comments.join('|') + ')' + BLANK + '\\{([\\S\\s]+?)' +
+    BLANK + '\\}' + BLANK;
+  var m = content.match(comm);
+  if (!m) return;
+  addChars(bundle, m[2].replace(new RegExp(BLANK, 'g'), ''));
 }
 
 function gettextCSSContent(bundle, content) {
