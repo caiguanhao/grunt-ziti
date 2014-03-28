@@ -1,6 +1,6 @@
 (function() {
-  var variable = /*! ziti { */'内'/*! } */;
-  var variable2 = '部'; /*! ziti { 部 } */
+  var variable = '内';
+  var variable2 = '部'; /*!ziti{内}ziti { 部 } */
   var $ziti$ = function(string) { return string; };
   var not$ziti$ = function(string) { return string; };
   var h3 = document.querySelectorAll('h3');

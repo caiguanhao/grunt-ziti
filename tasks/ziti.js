@@ -262,40 +262,26 @@ function gettextJSFunctions(bundle, funcs, content) {
 }
 
 function gettextJSComments(bundle, comments, content) {
-  comments = comments.map(function(c) { return escapeRegex(c); });
 
-  var eCommStart = NAME_DELIMETER + '(' + comments.join('|') + ')' + BLANK + '\\{';
-  var eCommStartRegExp = new RegExp(eCommStart);
-  var eCommEnd = BLANK + '\\}' + BLANK;
-  var eCommEndRegExp = new RegExp(eCommEnd);
-  var iComm = eCommStart + '([\\S\\s]+?)' + eCommEnd;
+  var cont = '', start = 0, end = 0, cursor = 0;
+  for (; end < content.length;) {
+    start = content.indexOf('/*', cursor);
+    end = content.indexOf('*/', start + 2);
+    if (start === -1 || end === -1) break;
+    cont += content.substring(start + 2, end);
+    cursor = end + 2;
+  }
+
+  comments = comments.map(function(c) { return escapeRegex(c); });
+  var comm = NAME_DELIMETER + '(' + comments.join('|') + ')' + BLANK +
+    '\\{([\\S\\s]+?)\\}';
   var blankRegExpGlobal = new RegExp(BLANK, 'g');
 
-  var c = content, m, t, pos = 0, start = 0, end = 0;
-  while (m = c.match(/\/\*[\S\s]+?\*\//)) {
-    var s = m[0].length + m.index;
-    pos += s;
-    if (end !== 0) end += s;
-    c = c.substr(s);
-    t = m[0].match(iComm);
-    if (t) {
-      addChars(bundle, t[2].replace(blankRegExpGlobal, ''));
-    } else {
-      t = eCommStartRegExp.test(m[0]);
-      if (t) {
-        start = pos;
-        end = pos;
-      } else {
-        t = eCommEndRegExp.test(m[0]);
-        if (t && start !== 0) {
-          var eContent = content.slice(start, end - m[0].length);
-          eContent = eContent.replace(/^(['"])(.+)\1$/g, '$2')
-          addChars(bundle, eContent.replace(blankRegExpGlobal, ''));
-          start = 0;
-          end = 0;
-        }
-      }
-    }
+  var m, c;
+  while (m = (' ' + cont).match(comm)) {
+    c = m[2].replace(blankRegExpGlobal, '');
+    addChars(bundle, c);
+    cont = cont.substr(m.index + m[0].length - 1);
   }
 }
 
