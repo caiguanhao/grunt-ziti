@@ -198,9 +198,17 @@ var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
 
 function gettextJSContent(bundle, content) {
   var jsOptions = bundle.options.js || {};
-  var funcs = jsOptions.functions || [];
-  if (funcs.length === 0) return bundle;
 
+  var funcs = jsOptions.functions || [];
+  if (funcs.length > 0) gettextJSFunctions(bundle, funcs, content);
+
+  var comments = jsOptions.comments || [];
+  if (comments.length > 0) gettextJSComments(bundle, comments, content);
+
+  return bundle;
+}
+
+function gettextJSFunctions(bundle, funcs, content) {
   var funcNames = funcs.map(function(f) { return escapeRegex(f); });
 
   var functions = '(' + funcNames.join('|') + ')' +
@@ -241,7 +249,40 @@ function gettextJSContent(bundle, content) {
     t = t.match(functionsRegExp);
     if (t) addChars(bundle, t[3].replace(/\x00/g, ')'));
   }
-  return bundle;
+}
+
+function gettextJSComments(bundle, comments, content) {
+  comments = comments.map(function(c) { return escapeRegex(c); });
+
+  var eCommStart = '(' + comments.join('|') + ')' + BLANK + '\\{';
+  var eCommStartRegExp = new RegExp(eCommStart);
+  var eCommEnd = BLANK + '\\}' + BLANK;
+  var eCommEndRegExp = new RegExp(eCommEnd);
+  var iComm = eCommStart + '([\\S\\s]+?)' + eCommEnd;
+
+  var c = content, m, t, pos = 0, start = 0, end = 0;
+  while (m = c.match(/\/\*[\S\s]+?\*\//)) {
+    var s = m[0].length + m.index;
+    pos += s;
+    if (end !== 0) end += s;
+    c = c.substr(s);
+    t = m[0].match(iComm);
+    if (t) {
+      addChars(bundle, t[2].trim());
+    } else {
+      t = eCommStartRegExp.test(m[0]);
+      if (t) {
+        start = pos;
+        end = pos;
+      } else {
+        t = eCommEndRegExp.test(m[0]);
+        if (t && start !== 0) {
+          var eContent = content.slice(start, end - m[0].length);
+          addChars(bundle, eContent.trim().replace(/^(['"])(.+)\1$/g, '$2'));
+        }
+      }
+    }
+  }
 }
 
 function gettextCSSContent(bundle, content) {

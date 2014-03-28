@@ -13,7 +13,8 @@ module.exports = function(grunt) {
             elements: [ 'h2' ]
           },
           js: {
-            functions: [ '$ziti$' ]
+            functions: [ '$ziti$' ],
+            comments: [ 'ziti' ]
           },
           css: {
             selectors: [ '.words:before' ]
