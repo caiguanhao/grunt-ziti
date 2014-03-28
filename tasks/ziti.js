@@ -204,9 +204,9 @@ function gettextJSContent(bundle, content) {
   var funcNames = funcs.map(function(f) { return escapeRegex(f); });
 
   var functions = '(' + funcNames.join('|') + ')' +
-    BLANK + '\\(' + BLANK + '([\'"])([\\S\\s]+?)\\2'+ BLANK + '\\)';
-  var functionsRegExp = new RegExp(functions);
-  var functionsRegExpGlobal = new RegExp(functions, 'g');
+    BLANK + '\\(' + BLANK + '([\'"])([\\S\\s]+?)';
+  var functionsRegExp = new RegExp(functions + '[\'"]' + BLANK + '\\)');
+  var functionsRegExpGlobal = new RegExp(functions + '\\)', 'g');
 
   var concat = '^' + BLANK + '\\+' + BLANK + '$';
   var concatRegExp = new RegExp(concat);
@@ -215,13 +215,19 @@ function gettextJSContent(bundle, content) {
   var mRegExp2 = new RegExp('(\\()' + BLANK + '([\'"])');
   var mRegExp3 = new RegExp('^' + BLANK + '[\'"]' + BLANK, 'mg');
 
-  var m = content.match(functionsRegExpGlobal);
+  content = content.replace(/(['"])(.+?|)\)(.+?|)\1/g, '$1$2\x00$3$1');
+  var m = content.match(functionsRegExpGlobal) || [];
+
   for (var i = 0; i < m.length; i++) {
     var t = m[i];
+    t = t.replace(/[^'"]+$/, ')');
     // turn oneline concat string to multiline
     var s = t.split(/['"]/);
     s = s.map(function(S) {
-      return concatRegExp.test(S) ? S.replace(/[\s\t\n\r\f]{1,}/g, '\n') : S;
+      if (concatRegExp.test(S)) {
+        return (' ' + S + ' ').replace(/[\s\t\n\r\f]{1,}/g, '\n');
+      }
+      return S;
     });
     t = s.join('"');
     // multiline string:
@@ -230,7 +236,7 @@ function gettextJSContent(bundle, content) {
     t = t.replace(mRegExp3, '');
     t = t.replace(/\n/g, '');
     t = t.match(functionsRegExp);
-    if (t) addChars(bundle, t[3]);
+    if (t) addChars(bundle, t[3].replace(/\x00/g, ')'));
   }
   return bundle;
 }
