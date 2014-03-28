@@ -324,6 +324,8 @@ function gettextCSSContent(bundle, content) {
       var s = a[1].replace(/\x00/g, '}').replace(/\x01/g, ';');
       s = s.split(splitRegExp).join('');
 
+      var ind = s.match(/['"]/);
+      if (ind) s = s.substr(0, ind.index);
       // skip invalid property value:
       if (/['"]$/.test(s) || /\n|\r|\f/.test(s)) continue;
 
