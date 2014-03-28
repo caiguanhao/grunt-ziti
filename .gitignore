@@ -5,3 +5,4 @@ node_modules
 *.ttf
 *.woff
 vendor/webify
+test/tmp

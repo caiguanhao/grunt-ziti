@@ -47,6 +47,10 @@ module.exports = function(grunt) {
       options: {
         livereload: true
       },
+      main: {
+        files: [ 'tasks/*', 'Gruntfile.js' ],
+        tasks: [ 'ziti' ]
+      },
       test: {
         files: [ 'test/fixtures/*' ],
         tasks: [ 'ziti' ]

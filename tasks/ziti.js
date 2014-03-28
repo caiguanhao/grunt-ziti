@@ -194,31 +194,43 @@ function gettextHTMLContent(bundle, content) {
   return deferred.promise;
 }
 
+var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
+
 function gettextJSContent(bundle, content) {
   var jsOptions = bundle.options.js || {};
   var funcs = jsOptions.functions || [];
-  if (funcs.length > 0) {
-    var funcNames = funcs.map(function(f) {
-      return escapeRegex(f);
+  if (funcs.length === 0) return bundle;
+
+  var funcNames = funcs.map(function(f) { return escapeRegex(f); });
+
+  var functions = '(' + funcNames.join('|') + ')' +
+    BLANK + '\\(' + BLANK + '([\'"])([\\S\\s]+?)\\2'+ BLANK + '\\)';
+  var functionsRegExp = new RegExp(functions);
+  var functionsRegExpGlobal = new RegExp(functions, 'g');
+
+  var concat = '^' + BLANK + '\\+' + BLANK + '$';
+  var concatRegExp = new RegExp(concat);
+
+  var mRegExp = new RegExp('[\'"]' + BLANK + '\\+' + BLANK + '$', 'mg');
+  var mRegExp2 = new RegExp('(\\()' + BLANK + '([\'"])');
+  var mRegExp3 = new RegExp('^' + BLANK + '[\'"]' + BLANK, 'mg');
+
+  var m = content.match(functionsRegExpGlobal);
+  for (var i = 0; i < m.length; i++) {
+    var t = m[i];
+    // turn oneline concat string to multiline
+    var s = t.split(/['"]/);
+    s = s.map(function(S) {
+      return concatRegExp.test(S) ? S.replace(/[\s\t\n\r\f]{1,}/g, '\n') : S;
     });
-    var regex = '(' + funcNames.join('|') + ')' +
-      '[\\s\\t]*\\([\\s\\t]*([\'"])([\\S\\s]+?)\\2[\\s\\t]*\\)';
-    var m = content.match(new RegExp(regex, 'g'));
-    for (var i = 0; i < m.length; i++) {
-      var t = m[i];
-      // turn oneline concat string to multiline
-      var s = t.split(/['"]/);
-      s = s.map(function(S) {
-        return /^[\s\t]*\+[\s\t]*$/.test(S) ?
-          S.replace(/[\s\t]{1,}/g, '\n') : S });
-      t = s.join('"');
-      // multiline string:
-      t = t.replace(/['"][\s\t]*\+[\s\t]*$/mg, '');
-      t = t.replace(/^[\s\t]*['"][\s\t]*/mg, '');
-      t = t.replace(/\n/g, '');
-      t = t.match(new RegExp(regex));
-      addChars(bundle, t[3]);
-    }
+    t = s.join('"');
+    // multiline string:
+    t = t.replace(mRegExp, '');
+    t = t.replace(mRegExp2, '$1$2');
+    t = t.replace(mRegExp3, '');
+    t = t.replace(/\n/g, '');
+    t = t.match(functionsRegExp);
+    if (t) addChars(bundle, t[3]);
   }
   return bundle;
 }
@@ -230,13 +242,12 @@ function gettextCSSContent(bundle, content) {
 
   selectors = selectors.map(function(s) { return escapeRegex(s); });
 
-  var blank = '[\\s\\t\\n\\r\\f]{0,}';
-  var rules = '[;{}]' + blank + '(' + selectors.join('|') + ')' + blank +
+  var rules = '[;{}]' + BLANK + '(' + selectors.join('|') + ')' + BLANK +
     '(\\{[\\S\\s]+?\\})';
   var rulesRegExp = new RegExp(rules);
   var rulesRegExpGlobal = new RegExp(rules, 'g');
 
-  var contentProp = 'content:' + blank + '[\'"]([\\S\\s]+?)[\'"]' + blank +
+  var contentProp = 'content:' + BLANK + '[\'"]([\\S\\s]+?)[\'"]' + BLANK +
     '[;}]';
   var contentRegExp = new RegExp(contentProp);
   var contentRegExpGlobal = new RegExp(contentProp, 'g');
@@ -269,7 +280,7 @@ function gettextCSSContent(bundle, content) {
 }
 
 function escapeRegex(string) {
-  return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+  return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 }
 
 function hasClass(classNames, className) {
