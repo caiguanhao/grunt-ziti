@@ -211,7 +211,7 @@ function gettextJSContent(bundle, content) {
 function gettextJSFunctions(bundle, funcs, content) {
   var funcNames = funcs.map(function(f) { return escapeRegex(f); });
 
-  var functions = '(' + funcNames.join('|') + ')' +
+  var functions = '[^A-Za-z_$\xaa-\uff3f](' + funcNames.join('|') + ')' +
     BLANK + '\\(' + BLANK + '([\'"])([\\S\\s]+?)';
   var functionsRegExp = new RegExp(functions + '[\'"]' + BLANK + '\\)');
   var functionsRegExpGlobal = new RegExp(functions + '\\)', 'g');
@@ -226,7 +226,7 @@ function gettextJSFunctions(bundle, funcs, content) {
   var mRegExp3 = new RegExp('^' + BLANK + '[\'"]' + BLANK, 'mg');
 
   content = content.replace(/(['"])(.+?|)\)(.+?|)\1/g, '$1$2\x00$3$1');
-  var m = content.match(functionsRegExpGlobal) || [];
+  var m = (' ' + content).match(functionsRegExpGlobal) || [];
 
   for (var i = 0; i < m.length; i++) {
     var t = m[i];

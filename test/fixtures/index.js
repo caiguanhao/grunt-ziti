@@ -2,7 +2,9 @@
   var variable = /*! ziti { */'内'/*! } */;
   var variable2 = '部'; /*! ziti { 部 } */
   var $ziti$ = function(string) { return string; };
+  var not$ziti$ = function(string) { return string; };
   var h3 = document.querySelectorAll('h3');
+  not$ziti$('ABCDEFGHIJKLMNOPQRST');
   for (var i = 0; i < h3.length; i++) {
     h3[i].innerHTML = $ziti$(
       '字'+'体' + variable + variable2 + "(名)" +
