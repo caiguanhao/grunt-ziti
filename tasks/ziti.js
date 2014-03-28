@@ -203,6 +203,7 @@ function gettextHTMLContent(bundle, content) {
 }
 
 var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
+var NAME_DELIMETER = '[^A-Za-z0-9_$\xaa-\uff3f]';
 
 function gettextJSContent(bundle, content) {
   var jsOptions = bundle.options.js || {};
@@ -219,7 +220,7 @@ function gettextJSContent(bundle, content) {
 function gettextJSFunctions(bundle, funcs, content) {
   var funcNames = funcs.map(function(f) { return escapeRegex(f); });
 
-  var functions = '[^A-Za-z_$\xaa-\uff3f](' + funcNames.join('|') + ')' +
+  var functions = NAME_DELIMETER + '(' + funcNames.join('|') + ')' +
     BLANK + '\\(' + BLANK + '([\'"])([\\S\\s]+?)';
   var functionsRegExp = new RegExp(functions + '[\'"]' + BLANK + '\\)');
   var functionsRegExpGlobal = new RegExp(functions + '\\)', 'g');
@@ -262,11 +263,12 @@ function gettextJSFunctions(bundle, funcs, content) {
 function gettextJSComments(bundle, comments, content) {
   comments = comments.map(function(c) { return escapeRegex(c); });
 
-  var eCommStart = '(' + comments.join('|') + ')' + BLANK + '\\{';
+  var eCommStart = NAME_DELIMETER + '(' + comments.join('|') + ')' + BLANK + '\\{';
   var eCommStartRegExp = new RegExp(eCommStart);
   var eCommEnd = BLANK + '\\}' + BLANK;
   var eCommEndRegExp = new RegExp(eCommEnd);
   var iComm = eCommStart + '([\\S\\s]+?)' + eCommEnd;
+  var blankRegExpGlobal = new RegExp(BLANK, 'g');
 
   var c = content, m, t, pos = 0, start = 0, end = 0;
   while (m = c.match(/\/\*[\S\s]+?\*\//)) {
@@ -276,7 +278,7 @@ function gettextJSComments(bundle, comments, content) {
     c = c.substr(s);
     t = m[0].match(iComm);
     if (t) {
-      addChars(bundle, t[2].trim());
+      addChars(bundle, t[2].replace(blankRegExpGlobal, ''));
     } else {
       t = eCommStartRegExp.test(m[0]);
       if (t) {
@@ -286,7 +288,10 @@ function gettextJSComments(bundle, comments, content) {
         t = eCommEndRegExp.test(m[0]);
         if (t && start !== 0) {
           var eContent = content.slice(start, end - m[0].length);
-          addChars(bundle, eContent.trim().replace(/^(['"])(.+)\1$/g, '$2'));
+          eContent = eContent.replace(/^(['"])(.+)\1$/g, '$2')
+          addChars(bundle, eContent.replace(blankRegExpGlobal, ''));
+          start = 0;
+          end = 0;
         }
       }
     }
@@ -295,9 +300,9 @@ function gettextJSComments(bundle, comments, content) {
 
 function gettextHTMLComments(bundle, comments, content) {
   comments = comments.map(function(c) { return escapeRegex(c); });
-  var comm = '(' + comments.join('|') + ')' + BLANK + '\\{([\\S\\s]+?)' +
-    BLANK + '\\}' + BLANK;
-  var m = content.match(comm);
+  var comm = NAME_DELIMETER + '(' + comments.join('|') + ')' +
+    BLANK + '\\{([\\S\\s]+?)' + BLANK + '\\}' + BLANK;
+  var m = (' ' + content).match(comm);
   if (!m) return;
   addChars(bundle, m[2].replace(new RegExp(BLANK, 'g'), ''));
 }
