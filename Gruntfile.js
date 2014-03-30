@@ -34,6 +34,13 @@ module.exports = function(grunt) {
             'test/fixtures/original.ttf'
           ]
         }
+      },
+      none: {
+        files: {
+          'test/tmp/none.ttf': [
+            'test/fixtures/original.ttf'
+          ]
+        }
       }
     },
     connect: {
@@ -51,11 +58,11 @@ module.exports = function(grunt) {
       },
       main: {
         files: [ 'tasks/*', 'Gruntfile.js' ],
-        tasks: [ 'ziti' ]
+        tasks: [ 'ziti:index' ]
       },
       test: {
         files: [ 'test/fixtures/*' ],
-        tasks: [ 'ziti' ]
+        tasks: [ 'ziti:index' ]
       }
     }
   });
@@ -69,7 +76,7 @@ module.exports = function(grunt) {
   grunt.registerTask('default', [
     'clean',
     'download-font',
-    'ziti',
+    'ziti:index',
     'connect',
     'watch'
   ]);
