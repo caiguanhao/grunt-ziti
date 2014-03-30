@@ -43,6 +43,9 @@ ziti { 注 } -->
   td {
     padding: 5px 20px;
   }
+  .big-text {
+    font-size: 32px;
+  }
 </style>
 </head>
 
@@ -87,8 +90,29 @@ ziti { 注 } -->
         <td><em class="words words-woff">字体</em></td>
         <td><em class="words words-ttf">字体</em></td>
       </tr>
+      <tr>
+        <td colspan="4">
+          <script type="text/ng-template" id="one">
+            <span class="big-text my-ziti my-ziti-woff">一</span>
+          </script>
+          <script type="text/x-handlebars" id="two">
+            <span class="big-text my-ziti my-ziti-woff">二</span>
+          </script>
+        </td>
+      </tr>
     </tbody>
   </table>
+  <script type="text/javascript">
+    var one = document.getElementById('one');
+    var span = document.createElement('span');
+    span.innerHTML = one.innerHTML;
+    one.parentNode.replaceChild(span, one);
+
+    var two = document.getElementById('two');
+    var span = document.createElement('span');
+    span.innerHTML = two.innerHTML;
+    two.parentNode.replaceChild(span, two);
+  </script>
   <script src="index.js"></script>
   <script src="http://localhost:35729/livereload.js"></script>
 </body>

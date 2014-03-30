@@ -160,23 +160,25 @@ function gettextHTMLContent(bundle, content) {
   var comments = htmlOptions.comments || [];
 
   var deferred = Q.defer();
-  var addText = false;
+  var addText = false, processTextAsHTML = false;
   var parser = new htmlparser.Parser({
     onopentag: function(name, attribs) {
+      processTextAsHTML = false;
+      if (name === 'script' && attribs.type) {
+        var type = attribs.type.trim();
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-type
+        if (!/^(text|application)\/(ecma|java)script$/i.test(type)) {
+          return processTextAsHTML = true;
+        }
+      }
+
       addText = false;
-
       for (var i = 0; i < elements.length; i++) {
-        if (name === elements[i]) {
-          return addText = true;
-        }
+        if (name === elements[i]) return addText = true;
       }
-
       for (var i = 0; i < classes.length; i++) {
-        if (hasClass(attribs.class, classes[i])) {
-          return addText = true;
-        }
+        if (hasClass(attribs.class, classes[i])) return addText = true;
       }
-
       for (var i = 0; i < attributes.length; i++) {
         if (attribs.hasOwnProperty(attributes[i])) {
           return addChars(bundle, attribs[attributes[i]]);
@@ -189,6 +191,9 @@ function gettextHTMLContent(bundle, content) {
       }
     },
     ontext: function(text) {
+      if (processTextAsHTML === true) {
+        return gettextHTMLContent(bundle, text);
+      }
       if (addText === true) {
         return addChars(bundle, text.trim());
       }
