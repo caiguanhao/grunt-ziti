@@ -3,6 +3,9 @@ grunt-ziti
 
 Subsetting, optimizing and converting large font files to smaller web fonts.
 
+[![Status](https://travis-ci.org/caiguanhao/grunt-ziti.svg?branch=master)](
+https://travis-ci.org/caiguanhao/grunt-ziti)
+
 This grunt plugin:
 
 * can **gettext** from your HTML, JavaScript and CSS files
