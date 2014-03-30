@@ -31,6 +31,11 @@ module.exports = function(grunt) {
     var regexJS = new RegExp(options.js.pattern || '\\.js$', 'i');
     var regexCSS = new RegExp(options.css.pattern || '\\.css$', 'i');
 
+    var regexCharsFile;
+    if (typeof options.font.charsFilePattern === 'string') {
+      regexCharsFile = new RegExp(options.font.charsFilePattern);
+    }
+
     Q.
     fcall(function() {
       if (!grunt.file.isFile(webifyPath)) {
@@ -52,6 +57,7 @@ module.exports = function(grunt) {
         var html = [];
         var js = [];
         var css = [];
+        var charsFiles = [];
 
         for (var j = 0; j < file.src.length; j++) {
           var src = file.src[j];
@@ -63,6 +69,8 @@ module.exports = function(grunt) {
             js.push(src);
           } else if (regexCSS.test(src)) {
             css.push(src);
+          } else if (regexCharsFile && regexCharsFile.test(src)) {
+            charsFiles.push(src);
           }
         }
 
@@ -83,12 +91,14 @@ module.exports = function(grunt) {
           originalSrc: ttf[0] || '',
           src: src,
           dest: dest,
+          chars: options.font.chars || '',      // initial chars
           charsFile: dest + '.chars',
           optimizedFile: dest + '.optimized',
           options: options,
           html: html,
           css: css,
-          js: js
+          js: js,
+          charsFiles: charsFiles
         });
       }
       return bundle;
@@ -97,6 +107,7 @@ module.exports = function(grunt) {
       return bundle.reduce(function(previous, current) {
         return previous.then(function() {
           var tasks = [
+            addCharsFromCharsFiles,
             gettext('html'),
             gettext('js'),
             gettext('css'),
@@ -188,6 +199,16 @@ module.exports = function(grunt) {
         });
       }, Q(bundle));
     };
+  }
+
+  function addCharsFromCharsFiles(bundle) {
+    return bundle.charsFiles.reduce(function(previous, current) {
+      return previous.then(function() {
+        var content = grunt.file.read(current);
+        if (content) addChars(bundle, content.trim());
+        return bundle;
+      });
+    }, Q(bundle));
   }
 
 };

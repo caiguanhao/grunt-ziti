@@ -25,7 +25,9 @@ module.exports = function(grunt) {
             comments: [ 'ziti', 'htmlziti' ]
           },
           font: {
-            pattern: '\\.ttf$'
+            pattern: '\\.ttf$',
+            chars: '配置',
+            charsFilePattern: '\\.txt$'
           },
           subset: true,
           optimize: true,
@@ -37,6 +39,7 @@ module.exports = function(grunt) {
             'test/fixtures/index.html',
             'test/fixtures/index.js',
             'test/fixtures/index.css',
+            'test/fixtures/index.txt',
             'test/fixtures/original.ttf'
           ]
         }
