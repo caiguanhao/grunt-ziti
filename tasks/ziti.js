@@ -160,16 +160,25 @@ function gettextHTMLContent(bundle, content) {
   var comments = htmlOptions.comments || [];
 
   var deferred = Q.defer();
-  var addText = false, processTextAsHTML = false;
+  var addText = false;
+  var processTextAsHTML = false;
+  var processTextAsJS = false;
+  var processTextAsCSS = false;
   var parser = new htmlparser.Parser({
     onopentag: function(name, attribs) {
       processTextAsHTML = false;
-      if (name === 'script' && attribs.type) {
-        var type = attribs.type.trim();
+      processTextAsJS = false;
+      processTextAsCSS = false;
+      if (name === 'script') {
+        var type = (attribs.type || '').trim();
         // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-type
-        if (!/^(text|application)\/(ecma|java)script$/i.test(type)) {
-          return processTextAsHTML = true;
+        if (type === '' || /^(text|application)\/(ecma|java)script$/i.test(type)) {
+          return processTextAsJS = true;
         }
+        return processTextAsHTML = true;
+      }
+      if (name === 'style') {
+        return processTextAsCSS = true;
       }
 
       addText = false;
@@ -193,6 +202,12 @@ function gettextHTMLContent(bundle, content) {
     ontext: function(text) {
       if (processTextAsHTML === true) {
         return gettextHTMLContent(bundle, text);
+      }
+      if (processTextAsJS === true) {
+        return gettextJSContent(bundle, text);
+      }
+      if (processTextAsCSS === true) {
+        return gettextCSSContent(bundle, text);
       }
       if (addText === true) {
         return addChars(bundle, text.trim());

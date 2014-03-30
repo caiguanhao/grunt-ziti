@@ -14,12 +14,12 @@ module.exports = function(grunt) {
             comments: [ 'ziti' ]
           },
           js: {
-            functions: [ '$ziti$' ],
+            functions: [ '$ziti$', '$htmlziti$' ],
             comments: [ 'ziti' ]
           },
           css: {
             selectors: [ '.words:before' ],
-            comments: [ 'ziti' ]
+            comments: [ 'ziti', 'htmlziti' ]
           },
           font: {
             subset: true,

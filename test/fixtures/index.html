@@ -98,6 +98,7 @@ ziti { 注 } -->
           <script type="text/x-handlebars" id="two">
             <span class="big-text my-ziti my-ziti-woff">二</span>
           </script>
+          <span id="three" class="big-text my-ziti-woff"></span>
         </td>
       </tr>
     </tbody>
@@ -106,13 +107,22 @@ ziti { 注 } -->
     var one = document.getElementById('one');
     var span = document.createElement('span');
     span.innerHTML = one.innerHTML;
-    one.parentNode.replaceChild(span, one);
+    one.parentNode.replaceChild(span.children[0], one);
 
     var two = document.getElementById('two');
     var span = document.createElement('span');
     span.innerHTML = two.innerHTML;
-    two.parentNode.replaceChild(span, two);
+    two.parentNode.replaceChild(span.children[0], two);
+
+    var $htmlziti$ = function(string) { return string; };
+    var three = document.getElementById('three');
+    three.innerHTML = $htmlziti$('三');
   </script>
+  <style>
+    #three:after {
+      content: '四'; /*!htmlziti{四}*/
+    }
+  </style>
   <script src="index.js"></script>
   <script src="http://localhost:35729/livereload.js"></script>
 </body>
