@@ -8,18 +8,24 @@ module.exports = function(grunt) {
       index: {
         options: {
           html: {
+            pattern: '\\.html?$',
             classes: [ 'my-ziti' ],
             attributes: [ 'data-text' ],
             elements: [ 'h2' ],
             comments: [ 'ziti' ]
           },
           js: {
+            pattern: '\\.js$',
             functions: [ '$ziti$', '$htmlziti$' ],
             comments: [ 'ziti' ]
           },
           css: {
+            pattern: '\\.css$',
             selectors: [ '.words:before' ],
             comments: [ 'ziti', 'htmlziti' ]
+          },
+          font: {
+            pattern: '\\.ttf$'
           },
           subset: true,
           optimize: true,

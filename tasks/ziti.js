@@ -16,16 +16,20 @@ module.exports = function(grunt) {
     var finish = this.async();
     var files = this.files;
     var options = this.options({
+      html: {},
+      js: {},
+      css: {},
+      font: {},
       subset: true,
       optimize: true,
       convert: true,
       deleteCharsFile: true
     });
 
-    var regexTTF = new RegExp('\.ttf$', 'i');
-    var regexHTML = new RegExp('\.html?$', 'i');
-    var regexJS = new RegExp('\.js$', 'i');
-    var regexCSS = new RegExp('\.css$', 'i');
+    var regexTTF = new RegExp(options.font.pattern || '\\.ttf$', 'i');
+    var regexHTML = new RegExp(options.html.pattern || '\\.html?$', 'i');
+    var regexJS = new RegExp(options.js.pattern || '\\.js$', 'i');
+    var regexCSS = new RegExp(options.css.pattern || '\\.css$', 'i');
 
     Q.
     fcall(function() {
@@ -200,7 +204,7 @@ function addChars(bundle, string) {
 
 function gettextHTMLContent(bundle, content) {
   var htmlparser = require('htmlparser2');
-  var htmlOptions = bundle.options.html || {};
+  var htmlOptions = bundle.options.html;
 
   var elements = htmlOptions.elements || [];
   var classes = htmlOptions.classes || [];
@@ -275,7 +279,7 @@ var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
 var NAME_DELIMETER = '[^A-Za-z0-9_$\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\uff3f]';
 
 function gettextJSContent(bundle, content) {
-  var jsOptions = bundle.options.js || {};
+  var jsOptions = bundle.options.js;
 
   var funcs = jsOptions.functions || [];
   if (funcs.length > 0) gettextJSFunctions(bundle, funcs, content);
@@ -368,7 +372,7 @@ function gettextHTMLComments(bundle, comments, content) {
 }
 
 function gettextCSSContent(bundle, content) {
-  var cssOptions = bundle.options.css || {};
+  var cssOptions = bundle.options.css;
   var selectors = cssOptions.selectors || [];
   var comments = cssOptions.comments || [];
 
