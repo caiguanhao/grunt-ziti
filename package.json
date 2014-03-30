@@ -2,7 +2,6 @@
   "name": "grunt-ziti",
   "version": "0.0.0",
   "description": "Subsetting, optimizing and converting large font files to smaller web fonts.",
-  "main": "index.js",
   "scripts": {
     "test": "grunt test"
   },
@@ -28,8 +27,16 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-connect": "~0.7.1"
   },
+  "peerDependencies": {
+    "grunt": "~0.4.0"
+  },
   "dependencies": {
     "q": "~1.0.1",
     "htmlparser2": "~3.7.1"
-  }
+  },
+  "files": [
+    "tasks",
+    "vendor",
+    "LICENSE"
+  ]
 }
