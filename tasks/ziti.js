@@ -99,9 +99,15 @@ module.exports = function(grunt) {
               tasks.push(obfuscate);
               tasks.push(renameOptimizedFile);
             }
-            if (current.options.font.convert === true) {
-              tasks.push(webify);
-            }
+          } else {
+            tasks.push(function(bundle) {
+              grunt.log.writeln('Source font file will not be subsetted.');
+              return bundle;
+            });
+          }
+          if (current.options.font.convert === true) {
+            tasks.push(copySrcToDestIfDestIsMissing);
+            tasks.push(webify);
           }
           tasks.push(cleanCharsFile);
           return tasks.reduce(Q.when, Q(current));
@@ -142,6 +148,13 @@ module.exports = function(grunt) {
       }
     });
     return deferred.promise;
+  }
+
+  function copySrcToDestIfDestIsMissing(bundle) {
+    if (!grunt.file.isFile(bundle.dest)) {
+      grunt.file.copy(bundle.src, bundle.dest);
+    }
+    return bundle;
   }
 
   var gettextFunctions = {
