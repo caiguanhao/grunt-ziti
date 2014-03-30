@@ -74,7 +74,8 @@ module.exports = function(grunt) {
           originalSrc: ttf[0],
           src: src,
           dest: dest,
-          destp1: dest + '.p1',
+          charsfile: dest + '.chars',
+          optimizedfile: dest + '.optimized',
           options: options,
           html: html,
           css: css,
@@ -86,16 +87,24 @@ module.exports = function(grunt) {
     then(function(bundle) {
       return bundle.reduce(function(previous, current) {
         return previous.then(function() {
-          return [
+          var tasks = [
             gettext('html'),
             gettext('js'),
             gettext('css'),
-            writeCharsFile,
-            subset,
-            obfuscate,
-            webify,
-            clean
-          ].reduce(Q.when, Q(current));
+            writeCharsFile
+          ];
+          if (current.options.font.subset === true) {
+            tasks.push(subset);
+            if (current.options.font.optimize === true) {
+              tasks.push(obfuscate);
+              tasks.push(renameOptimizedFile);
+            }
+            if (current.options.font.convert === true) {
+              tasks.push(webify);
+            }
+          }
+          tasks.push(cleanCharsFile);
+          return tasks.reduce(Q.when, Q(current));
         });
       }, Q());
     }).
@@ -113,13 +122,26 @@ module.exports = function(grunt) {
 
   function writeCharsFile(bundle) {
     grunt.log.writeln('Characters: ' + bundle.chars);
-    grunt.file.write(bundle.destp1, bundle.chars);
+    grunt.file.write(bundle.charsfile, bundle.chars);
     return bundle;
   }
 
-  function clean(bundle) {
-    grunt.file.delete(bundle.destp1);
+  function cleanCharsFile(bundle) {
+    grunt.file.delete(bundle.charsfile);
     return bundle;
+  }
+
+  function renameOptimizedFile(bundle) {
+    var deferred = Q.defer();
+    var fs = require('fs');
+    fs.rename(bundle.optimizedfile, bundle.dest, function(err) {
+      if (err) {
+        deferred.reject(err);
+      } else {
+        deferred.resolve(bundle);
+      }
+    });
+    return deferred.promise;
   }
 
   var gettextFunctions = {
@@ -406,7 +428,7 @@ function subset(bundle) {
     deferred.notify([ 'write', 'Subsetting ' + bundle.originalSrc + '... ' ]);
   }, 0);
   var subset = spawn('./subset.pl', [
-    '--charsfile=' + bundle.destp1, bundle.src, bundle.destp1
+    '--charsfile=' + bundle.charsfile, bundle.src, bundle.dest
   ], {
     cwd: fontOptimizer
   });
@@ -428,7 +450,7 @@ function obfuscate(bundle) {
     deferred.notify([ 'write', 'Obfuscating... ' ]);
   }, 0);
   var obfuscate = spawn('./obfuscate-font.pl', [
-    '--all', bundle.destp1, bundle.dest
+    '--all', bundle.dest, bundle.optimizedfile
   ], {
     cwd: fontOptimizer
   });
