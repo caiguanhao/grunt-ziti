@@ -1,8 +1,9 @@
 var path = require('path');
 var spawn = require('child_process').spawn;
+var Q = require('q');
+
 var fontOptimizer = path.normalize(__dirname + '/../vendor/font-optimizer');
 var webifyPath = path.normalize(__dirname + '/../vendor/webify');
-var Q = require('q');
 
 module.exports = function(grunt) {
 
@@ -10,7 +11,8 @@ module.exports = function(grunt) {
     'large font files.', function() {
 
     if (!grunt.file.isDir(fontOptimizer)) {
-      return grunt.fail.fatal('Can\'t find font-optimizer.');
+      return grunt.fail.fatal('Can\'t find font-optimizer. You may need to ' +
+        're-install or re-download grunt-ziti.');
     }
 
     var finish = this.async();
@@ -38,7 +40,7 @@ module.exports = function(grunt) {
 
     Q.
     fcall(function() {
-      if (!grunt.file.isFile(webifyPath)) {
+      if (options.convert === true && !grunt.file.isFile(webifyPath)) {
         var url = webifyURL();
         grunt.log.writeln('Can\'t find webify. Now downloading from:');
         grunt.log.writeln(url);

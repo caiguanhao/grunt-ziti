@@ -44,6 +44,19 @@ module.exports = function(grunt) {
           ]
         }
       },
+      ziti: {
+        options: {
+          font: {
+            chars: '字形字体字型'
+          },
+          convert: true
+        },
+        files: {
+          'test/tmp/ziti.ttf': [
+            'test/fixtures/original.ttf'
+          ]
+        }
+      },
       none: {
         files: {
           'test/tmp/none.ttf': [
