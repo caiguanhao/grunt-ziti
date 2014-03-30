@@ -15,7 +15,12 @@ module.exports = function(grunt) {
 
     var finish = this.async();
     var files = this.files;
-    var options = this.options();
+    var options = this.options({
+      subset: true,
+      optimize: true,
+      convert: true,
+      deleteCharsFile: true
+    });
 
     var regexTTF = new RegExp('\.ttf$', 'i');
     var regexHTML = new RegExp('\.html?$', 'i');
@@ -58,7 +63,7 @@ module.exports = function(grunt) {
         }
 
         if (ttf.length === 0) {
-          grunt.fail.fatal('Can\'t find any TTF file.');
+          grunt.log.warn('Can\'t find any TTF file.');
         } else if (ttf.length > 1) {
           grunt.log.warn('There are ' + ttf.length + ' TTF files. Only ' +
             ttf[0] + ' will be used.');
@@ -67,15 +72,15 @@ module.exports = function(grunt) {
             'TTF source file.');
         }
 
-        var src = path.resolve(ttf[0]);
+        var src = ttf[0] ? path.resolve(ttf[0]) : '';
         var dest = path.resolve(file.dest);
 
         bundle.push({
-          originalSrc: ttf[0],
+          originalSrc: ttf[0] || '',
           src: src,
           dest: dest,
-          charsfile: dest + '.chars',
-          optimizedfile: dest + '.optimized',
+          charsFile: dest + '.chars',
+          optimizedFile: dest + '.optimized',
           options: options,
           html: html,
           css: css,
@@ -93,23 +98,27 @@ module.exports = function(grunt) {
             gettext('css'),
             writeCharsFile
           ];
-          if (current.options.font.subset === true) {
-            tasks.push(subset);
-            if (current.options.font.optimize === true) {
-              tasks.push(obfuscate);
-              tasks.push(renameOptimizedFile);
+          if (current.src) {
+            if (current.options.subset === true) {
+              tasks.push(subset);
+              if (current.options.optimize === true) {
+                tasks.push(obfuscate);
+                tasks.push(renameOptimizedFile);
+              }
+            } else {
+              tasks.push(function(bundle) {
+                grunt.log.writeln('Source font file will not be subsetted.');
+                return bundle;
+              });
             }
-          } else {
-            tasks.push(function(bundle) {
-              grunt.log.writeln('Source font file will not be subsetted.');
-              return bundle;
-            });
+            if (current.options.convert === true) {
+              tasks.push(copySrcToDestIfDestIsMissing);
+              tasks.push(webify);
+            }
+            if (current.options.deleteCharsFile === true) {
+              tasks.push(cleanCharsFile);
+            }
           }
-          if (current.options.font.convert === true) {
-            tasks.push(copySrcToDestIfDestIsMissing);
-            tasks.push(webify);
-          }
-          tasks.push(cleanCharsFile);
           return tasks.reduce(Q.when, Q(current));
         });
       }, Q());
@@ -127,20 +136,24 @@ module.exports = function(grunt) {
   });
 
   function writeCharsFile(bundle) {
-    grunt.log.writeln('Characters: ' + bundle.chars);
-    grunt.file.write(bundle.charsfile, bundle.chars);
+    if (bundle.chars) {
+      grunt.log.ok('Characters: ' + bundle.chars);
+    } else {
+      grunt.log.warn('Found no characters.');
+    }
+    grunt.file.write(bundle.charsFile, bundle.chars || '');
     return bundle;
   }
 
   function cleanCharsFile(bundle) {
-    grunt.file.delete(bundle.charsfile);
+    grunt.file.delete(bundle.charsFile);
     return bundle;
   }
 
   function renameOptimizedFile(bundle) {
     var deferred = Q.defer();
     var fs = require('fs');
-    fs.rename(bundle.optimizedfile, bundle.dest, function(err) {
+    fs.rename(bundle.optimizedFile, bundle.dest, function(err) {
       if (err) {
         deferred.reject(err);
       } else {
@@ -169,7 +182,7 @@ module.exports = function(grunt) {
         return previous.then(function() {
           return gettextFunctions[filetype](bundle, grunt.file.read(current));
         });
-      }, Q());
+      }, Q(bundle));
     };
   }
 
@@ -441,7 +454,7 @@ function subset(bundle) {
     deferred.notify([ 'write', 'Subsetting ' + bundle.originalSrc + '... ' ]);
   }, 0);
   var subset = spawn('./subset.pl', [
-    '--charsfile=' + bundle.charsfile, bundle.src, bundle.dest
+    '--charsfile=' + bundle.charsFile, bundle.src, bundle.dest
   ], {
     cwd: fontOptimizer
   });
@@ -463,7 +476,7 @@ function obfuscate(bundle) {
     deferred.notify([ 'write', 'Obfuscating... ' ]);
   }, 0);
   var obfuscate = spawn('./obfuscate-font.pl', [
-    '--all', bundle.dest, bundle.optimizedfile
+    '--all', bundle.dest, bundle.optimizedFile
   ], {
     cwd: fontOptimizer
   });

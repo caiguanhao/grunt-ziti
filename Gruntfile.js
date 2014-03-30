@@ -21,11 +21,10 @@ module.exports = function(grunt) {
             selectors: [ '.words:before' ],
             comments: [ 'ziti', 'htmlziti' ]
           },
-          font: {
-            subset: true,
-            optimize: true,
-            convert: true
-          }
+          subset: true,
+          optimize: true,
+          convert: true,
+          deleteCharsFile: false
         },
         files: {
           'test/tmp/my-ziti.ttf': [
