@@ -15,6 +15,15 @@ to subset and optimize TTF font file
 * will **download** [webify](https://github.com/ananthakumaran/webify)
 (by Anantha Kumaran) binary file - to generate web font
 
+Notes:
+
+* For edge cases of getting texts, you can always use comments or specify
+characters directly in grunt.initConfig().
+* If you are using Linux, the webify binary requires glibc version >= 2.15,
+for Ubuntu users, you'll need 12.04 LTS or newer system.
+* If you are using TTC font, you can use FontForge to open the file and then
+save it as separate TTF files.
+
 ## Getting Started
 
 This plugin requires Grunt `~0.4.0`
@@ -274,7 +283,7 @@ grunt.initConfig({
 });
 ```
 
----
+## License
 
 font-optimizer, webify and grunt-ziti use the MIT license:
 
