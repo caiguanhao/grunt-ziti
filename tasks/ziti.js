@@ -77,14 +77,16 @@ module.exports = function(grunt) {
           }
         }
 
-        if (ttf.length === 0) {
-          grunt.log.warn('Can\'t find any TTF file.');
-        } else if (ttf.length > 1) {
-          grunt.log.warn('There are ' + ttf.length + ' TTF files. Only ' +
-            ttf[0] + ' will be used.');
-        } else if (ttf[0] === file.dest) {
-          grunt.fail.fatal('It\'s not recommended to overwrite the ' +
-            'TTF source file.');
+        if (options.subset === true) {
+          if (ttf.length === 0) {
+            grunt.log.warn('Can\'t find any TTF file.');
+          } else if (ttf.length > 1) {
+            grunt.log.warn('There are ' + ttf.length + ' TTF files. Only ' +
+              ttf[0] + ' will be used.');
+          } else if (ttf[0] === file.dest) {
+            grunt.fail.fatal('It\'s not recommended to overwrite the ' +
+              'TTF source file.');
+          }
         }
 
         var src = ttf[0] ? path.resolve(ttf[0]) : '';
@@ -157,7 +159,9 @@ module.exports = function(grunt) {
     if (bundle.chars) {
       grunt.log.ok('Characters: ' + bundle.chars);
     } else {
-      grunt.log.warn('Found no characters.');
+      if (bundle.options.subset === true) {
+        grunt.log.warn('Found no characters.');
+      }
     }
     grunt.file.write(bundle.charsFile, bundle.chars || '');
     return bundle;
