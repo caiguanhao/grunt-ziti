@@ -28,10 +28,10 @@ module.exports = function(grunt) {
       deleteCharsFile: true
     });
 
-    var regexTTF = new RegExp(options.font.pattern || '\\.ttf$', 'i');
-    var regexHTML = new RegExp(options.html.pattern || '\\.html?$', 'i');
-    var regexJS = new RegExp(options.js.pattern || '\\.js$', 'i');
-    var regexCSS = new RegExp(options.css.pattern || '\\.css$', 'i');
+    var regexTTF = makeRegExp(options.font.pattern, '\\.ttf$', 'i');
+    var regexHTML = makeRegExp(options.html.pattern, '\\.html?$', 'i');
+    var regexJS = makeRegExp(options.js.pattern, '\\.js$', 'i');
+    var regexCSS = makeRegExp(options.css.pattern, '\\.css$', 'i');
 
     var regexCharsFile;
     if (typeof options.font.charsFilePattern === 'string') {
@@ -63,15 +63,16 @@ module.exports = function(grunt) {
 
         for (var j = 0; j < file.src.length; j++) {
           var src = file.src[j];
-          if (regexTTF.test(src)) {
+          var basename = path.basename(src);
+          if (regexTTF.test(basename)) {
             ttf.push(src);
-          } else if (regexHTML.test(src)) {
+          } else if (regexHTML.test(basename)) {
             html.push(src);
-          } else if (regexJS.test(src)) {
+          } else if (regexJS.test(basename)) {
             js.push(src);
-          } else if (regexCSS.test(src)) {
+          } else if (regexCSS.test(basename)) {
             css.push(src);
-          } else if (regexCharsFile && regexCharsFile.test(src)) {
+          } else if (regexCharsFile && regexCharsFile.test(basename)) {
             charsFiles.push(src);
           }
         }
@@ -300,6 +301,13 @@ function gettextHTMLContent(bundle, content) {
 var BLANK = '[\\s\\t\\n\\r\\f]{0,}';
 // see http://stackoverflow.com/a/9337047/855665
 var NAME_DELIMETER = '[^A-Za-z0-9_$\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\uff3f]';
+
+function makeRegExp(regex, defaultRegExp, flags) {
+  if (typeof regex === 'string' && regex.length > 0) {
+    return new RegExp(regex, flags);
+  }
+  return new RegExp(defaultRegExp, flags);
+}
 
 function gettextJSContent(bundle, content) {
   var jsOptions = bundle.options.js;
