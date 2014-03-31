@@ -186,6 +186,94 @@ Type: `String`
 RegExp to find text files. All characters in these text files will be included
 when subsetting the font.
 
+## Examples
+
+### Full options
+
+```js
+grunt.initConfig({
+  ziti: {
+    index: {
+      options: {
+        html: {
+          pattern: '\\.html?$',
+          classes: [ 'my-ziti' ],
+          attributes: [ 'data-text' ],
+          elements: [ 'h2' ],
+          comments: [ 'ziti' ]
+        },
+        js: {
+          pattern: '\\.js$',
+          functions: [ '$ziti$', '$htmlziti$' ],
+          comments: [ 'ziti' ]
+        },
+        css: {
+          pattern: '\\.css$',
+          selectors: [ '.words:before' ],
+          comments: [ 'ziti', 'htmlziti' ]
+        },
+        font: {
+          pattern: '\\.ttf$',
+          chars: '配置',
+          charsFilePattern: '\\.txt$'
+        },
+        subset: true,
+        optimize: true,
+        convert: true,
+        deleteCharsFile: false
+      },
+      files: {
+        'public/index.ttf': [
+          'src/index.html',
+          'src/index.js',
+          'src/index.css',
+          'src/index.txt',
+          'src/original.ttf'
+        ]
+      }
+    }
+  }
+});
+```
+
+### Subset font only
+
+```js
+grunt.initConfig({
+  ziti: {
+    subset_only: {
+      options: {
+        font: {
+          chars: '字形字体字型'
+        },
+        convert: false
+      },
+      files: {
+        'public/my.ttf': [ 'src/original.ttf' ]
+      }
+    }
+  }
+});
+```
+
+### Convert to web fonts only
+
+```js
+grunt.initConfig({
+  ziti: {
+    convert_only: {
+      options: {
+        subset: false,
+        convert: true
+      },
+      files: {
+        'public/my.ttf': [ 'src/original.ttf' ]
+      }
+    }
+  }
+});
+```
+
 ---
 
 font-optimizer, webify and grunt-ziti use the MIT license:
@@ -193,4 +281,3 @@ font-optimizer, webify and grunt-ziti use the MIT license:
 * Copyright (c) 2009 Philip Taylor
 * Copyright (c) 2013 Anantha Kumaran &lt;ananthakumaran@gmail.com&gt;
 * Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)
-

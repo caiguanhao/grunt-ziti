@@ -35,7 +35,7 @@ module.exports = function(grunt) {
           deleteCharsFile: false
         },
         files: {
-          'test/tmp/my-ziti.ttf': [
+          'test/tmp/index.ttf': [
             'test/fixtures/index.html',
             'test/fixtures/index.js',
             'test/fixtures/index.css',
@@ -44,15 +44,26 @@ module.exports = function(grunt) {
           ]
         }
       },
-      ziti: {
+      subset_only: {
         options: {
           font: {
             chars: '字形字体字型'
           },
+          convert: false
+        },
+        files: {
+          'test/tmp/subset_only.ttf': [
+            'test/fixtures/original.ttf'
+          ]
+        }
+      },
+      convert_only: {
+        options: {
+          subset: false,
           convert: true
         },
         files: {
-          'test/tmp/ziti.ttf': [
+          'test/tmp/convert_only.ttf': [
             'test/fixtures/original.ttf'
           ]
         }
