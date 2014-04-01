@@ -41,10 +41,7 @@ module.exports = function(grunt) {
     Q.
     fcall(function() {
       if (options.convert === true && !grunt.file.isFile(webifyPath)) {
-        var url = webifyURL();
-        grunt.log.writeln('Can\'t find webify. Now downloading from:');
-        grunt.log.writeln(url);
-        return download(url, webifyPath, 0755);
+        return download(webifyURL(), webifyPath, 0755);
       }
     }).
     then(function() {
@@ -591,7 +588,7 @@ function download(url, path, chmod) {
       return previous.catch(function() {
         return download(current, path, chmod);
       });
-    }, download(url[0], path, chmod));
+    }, Q.reject());
   } else if (typeof url !== 'string' || url.length < 8) {
     return Q.reject('Invalid download URL.');
   }
@@ -605,11 +602,14 @@ function download(url, path, chmod) {
   if (!protocol) return Q.reject('Unknown protocol of URL: ' + url);
 
   var deferred = Q.defer();
+  setTimeout(function() {
+    deferred.notify([ 'ok', 'Now downloading file from ' + url.underline +
+      ' to ' + path + '.' ]);
+  }, 0);
   var http = require(protocol);
   var request = http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
-      deferred.notify([ 'ok', 'Redirected to: ' + url ]);
       return deferred.resolve(download(url, path, chmod));
     } else if (res.statusCode !== 200) {
       return deferred.reject('Fail to download. Status: ' + res.statusCode);
