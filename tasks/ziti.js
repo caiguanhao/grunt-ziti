@@ -75,7 +75,7 @@ module.exports = function(grunt) {
                 }
               }
             }
-          });
+          }).catch(function(){ /* mute */ });
         });
       }, Q());
     }).
@@ -585,6 +585,17 @@ function webify(bundle) {
 }
 
 function download(url, path, chmod) {
+  if (url instanceof Array) {
+    if (url.length === 0) return Q.reject('No URLs to download.');
+    return url.reduce(function(previous, current) {
+      return previous.catch(function() {
+        return download(current, path, chmod);
+      });
+    }, download(url[0], path, chmod));
+  } else if (typeof url !== 'string' || url.length < 8) {
+    return Q.reject('Invalid download URL.');
+  }
+
   var protocol;
   if (url.substr(0, 8) === 'https://') {
     protocol = 'https';
@@ -595,7 +606,7 @@ function download(url, path, chmod) {
 
   var deferred = Q.defer();
   var http = require(protocol);
-  http.get(url, function(res) {
+  var request = http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
       deferred.notify([ 'ok', 'Redirected to: ' + url ]);
@@ -625,6 +636,7 @@ function download(url, path, chmod) {
       deferred.resolve();
     });
   });
+  request.on('error', deferred.reject);
   return deferred.promise;
 }
 

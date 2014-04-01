@@ -30,8 +30,11 @@ module.exports = function(grunt) {
             charsFilePattern: '\\.txt$'
           },
           download: {
-            'test/fixtures/original.ttf': 'https://github.com/cghio/wqyfonts' +
-              '/raw/master/fonts/WenQuanYiMicroHei.ttf'
+            'test/fixtures/original.ttf': [
+              'http://localhost:8000/test/fixtures/WenQuanYiMicroHei.ttf',
+              'https://github.com/cghio/wqyfonts/raw/master/fonts/' +
+                'WenQuanYiMicroHei.ttf'
+            ]
           },
           subset: true,
           optimize: true,
@@ -98,7 +101,7 @@ module.exports = function(grunt) {
         tasks: [ 'ziti:index' ]
       },
       test: {
-        files: [ 'test/fixtures/*' ],
+        files: [ 'test/fixtures/*', '!test/fixtures/*.ttf' ],
         tasks: [ 'ziti:index' ]
       }
     }
