@@ -23,6 +23,9 @@ characters directly in grunt.initConfig().
 for Ubuntu users, you'll need 12.04 LTS or newer system.
 * If you are using TTC font, you can use FontForge to open the file and then
 save it as separate TTF files.
+* If your font files are large, don't include them in your project's git
+repository. You should put them in another repository and use `download`
+option.
 
 ## Getting Started
 
@@ -195,6 +198,16 @@ Type: `String`
 RegExp to find text files. All characters in these text files will be included
 when subsetting the font.
 
+### download
+
+Type: `Object`
+
+Download files from URLs. Like Grunt's file object, keys are the destination
+locations while values can be a single URL string or an array of URL strings.
+When it is an array, next URL in the array will be used if previous one fails
+to download. Download starts only when one of destination files is missing in
+the files object.
+
 ## Examples
 
 ### Full options
@@ -226,6 +239,13 @@ grunt.initConfig({
           chars: '配置',
           charsFilePattern: '\\.txt$'
         },
+        download: {
+          'src/original.ttf': [
+            'http://localhost:8000/fonts/WenQuanYiMicroHei.ttf',
+            'http://localhost:3000/fonts/WenQuanYiMicroHei.ttf',
+            'https://github.com/cghio/wqyfonts/raw/master/fonts/WenQuanYiMicroHei.ttf'
+          ]
+        },
         subset: true,
         optimize: true,
         convert: true,
@@ -237,7 +257,7 @@ grunt.initConfig({
           'src/index.js',
           'src/index.css',
           'src/index.txt',
-          'src/original.ttf'
+          'src/*.ttf'
         ]
       }
     }
