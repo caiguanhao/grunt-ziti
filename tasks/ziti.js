@@ -187,6 +187,12 @@ module.exports = function(grunt) {
 
   });
 
+  grunt.log.clearWrite = function() {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    grunt.log.write.apply(null, arguments);
+  };
+
   function writeCharsFile(bundle) {
     if (bundle.chars) {
       grunt.log.ok('Characters: ' + bundle.chars);
@@ -621,9 +627,7 @@ function download(url, path, chmod) {
     res.on('data', function(data) {
       file.write(data);
       done += data.length;
-      process.stdout.clearLine();
-      process.stdout.cursorTo(0);
-      deferred.notify([ 'write', (done / total * 100).toFixed(2) + '%, ' +
+      deferred.notify([ 'clearWrite', (done / total * 100).toFixed(2) + '%, ' +
         done + ' of ' + total + ' bytes downloaded... ' ]);
     });
     res.on('end', function() {
