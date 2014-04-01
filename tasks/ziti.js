@@ -47,6 +47,9 @@ module.exports = function(grunt) {
         return download(url, webifyPath, 0755);
       }
     }).
+    progress(function(bundle) {
+      if (bundle) grunt.log[bundle[0]].apply(null, bundle.slice(1));
+    }).
     catch(function(e) {
       grunt.fail.fatal(e);
     }).
@@ -144,7 +147,7 @@ module.exports = function(grunt) {
       }, Q());
     }).
     progress(function(bundle) {
-      grunt.log[bundle[0]].apply(null, bundle.slice(1));
+      if (bundle) grunt.log[bundle[0]].apply(null, bundle.slice(1));
     }).
     catch(function(error) {
       grunt.fail.fatal(error);
