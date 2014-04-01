@@ -47,6 +47,38 @@ module.exports = function(grunt) {
         return download(url, webifyPath, 0755);
       }
     }).
+    then(function() {
+      if (typeof options.download !== 'object') return;
+      var downloadFiles = Object.keys(options.download);
+      if (downloadFiles.length === 0) return;
+      var downloadList = [];
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        for (var j = 0; j < downloadFiles.length; j++) {
+          var f = downloadFiles[j];
+          if (file.src.indexOf(f) > -1) continue;
+          for (var k = 0; k < file.orig.src.length; k++) {
+            if (grunt.file.isMatch(file.orig.src[k], f)) {
+              downloadList.push(f);
+            }
+          }
+        }
+      }
+      return downloadList.reduce(function(previous, current) {
+        return previous.then(function() {
+          return download(options.download[current], current).then(function() {
+            for (var i = 0; i < files.length; i++) {
+              var file = files[i];
+              for (var j = 0; j < file.orig.src.length; j++) {
+                if (grunt.file.isMatch(file.orig.src[j], current)) {
+                  if (file.src.indexOf(f) === -1) file.src.push(f);
+                }
+              }
+            }
+          });
+        });
+      }, Q());
+    }).
     progress(function(bundle) {
       if (bundle) grunt.log[bundle[0]].apply(null, bundle.slice(1));
     }).
@@ -553,8 +585,16 @@ function webify(bundle) {
 }
 
 function download(url, path, chmod) {
+  var protocol;
+  if (url.substr(0, 8) === 'https://') {
+    protocol = 'https';
+  } else if (url.substr(0, 7) === 'http://') {
+    protocol = 'http'
+  }
+  if (!protocol) return Q.reject('Unknown protocol of URL: ' + url);
+
   var deferred = Q.defer();
-  var http = require('http');
+  var http = require(protocol);
   http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
