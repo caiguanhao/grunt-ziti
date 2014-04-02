@@ -681,27 +681,57 @@ function download(url, path, chmod) {
   return deferred.promise;
 }
 
+/*
+#!/bin/bash
+# generate webify checksums:
+webify=webify-0.1.6.0
+echo {
+for type in mac linux linux32; do
+  rm -f $webify
+  printf "  \"$type\": "
+  curl -LOs http://sourceforge.net/projects/webify/files/$type/$webify
+  printf "\"`shasum $webify | cut -c 1-40`\""
+  rm -f $webify
+  echo ,
+done
+rm -f $webify.exe
+printf "  \"windows\": "
+curl -LOs http://sourceforge.net/projects/webify/files/windows/$webify.exe
+printf "\"`shasum $webify.exe | cut -c 1-40`\""
+rm -f $webify.exe
+echo
+echo }
+*/
+
 function webifyURL() {
   var url = 'http://sourceforge.net/projects/webify/files';
   var version = '0.1.6.0';
+  var checksums = {
+    "mac": "4a7e954f43a86863e8abffd65506bd9f5382b147",
+    "linux": "d6e9e385261f746780b93635435890d664550c27",
+    "linux32": "5abbed821bf0ee3b329f11cafd3ece4452dbaa22",
+    "windows": "09bec7dd32a8f099b0fc92b5e1e7207043ec0ccb"
+  };
+  var type;
   var file = 'webify-' + version + '/download';
-  var fileExe = 'webify-' + version + '.exe/download';
   switch (process.platform) {
   case 'darwin':
-    url += '/mac/' + file + '#4a7e954f43a86863e8abffd65506bd9f5382b147';
+    type = 'mac';
     break;
   case 'linux':
     if (process.arch === 'x64') {
-      url += '/linux/' + file + '#d6e9e385261f746780b93635435890d664550c27';
+      type = 'linux';
     } else {
-      url += '/linux32/' + file + '#5abbed821bf0ee3b329f11cafd3ece4452dbaa22';
+      type = 'linux32';
     }
     break;
   case 'win32':
-    url += '/windows/' + fileExe + '#09bec7dd32a8f099b0fc92b5e1e7207043ec0ccb';
+    type = 'windows';
+    file = 'webify-' + version + '.exe/download'
     break;
   default:
     grunt.fail.fatal('Can\'t download webify for your OS.');
   }
+  url += '/' + type + '/' + file + '#' + checksums[type];
   return url;
 }
