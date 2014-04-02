@@ -607,6 +607,16 @@ function download(url, path, chmod) {
   }
   if (!protocol) return Q.reject('Unknown protocol of URL: ' + url);
 
+  var algorithm = [ 'sha1', 'SHA-1' ];
+  var checksum = url.match(/^(.*)#([a-f0-9]+)$/);
+  if (checksum) {
+    url = checksum[1];
+    checksum = checksum[2];
+    if (checksum.length === 32) algorithm = [ 'md5', 'MD5' ];
+    if (checksum.length === 64) algorithm = [ 'sha256', 'SHA-256' ];
+    if (checksum.length === 128) algorithm = [ 'sha512', 'SHA-512' ];
+  }
+
   var deferred = Q.defer();
   setTimeout(function() {
     deferred.notify([ 'ok', 'Now downloading file from ' + url.underline +
@@ -616,23 +626,38 @@ function download(url, path, chmod) {
   var request = http.get(url, function(res) {
     if (res.statusCode === 301 || res.statusCode === 302) {
       url = res.headers.location;
+      if (checksum) url += '#' + checksum;
       return deferred.resolve(download(url, path, chmod));
     } else if (res.statusCode !== 200) {
       return deferred.reject('Fail to download. Status: ' + res.statusCode);
     }
     var fs = require('fs');
     var file = fs.createWriteStream(path);
+    var crypto = require('crypto');
+    var shasum = crypto.createHash(algorithm[0]);
     var total = parseInt(res.headers['content-length']);
     var done = 0;
     res.on('data', function(data) {
       file.write(data);
+      shasum.update(data);
       done += data.length;
       deferred.notify([ 'clearWrite', (done / total * 100).toFixed(2) + '%, ' +
         done + ' of ' + total + ' bytes downloaded... ' ]);
     });
     res.on('end', function() {
-      file.end();
       deferred.notify([ 'writeln' ]);
+      file.end();
+      var hash = shasum.digest('hex');
+      deferred.notify([ 'ok', algorithm[1] + ': ' + hash ]);
+      if (!checksum) {
+        deferred.notify([ 'writeln', 'No checksum provided to verify.' ]);
+      } else if (checksum !== hash) {
+        fs.unlinkSync(path);
+        return deferred.reject('The downloaded file does not match checksum ' +
+          '"' + checksum + '" and is probably NOT the one you want!');
+      } else {
+        deferred.notify([ 'ok', 'The downloaded file passed checksum test.' ]);
+      }
       deferred.notify([ 'ok', 'Download completed: ' + path ]);
       if (chmod) {
         fs.chmodSync(path, chmod);
@@ -646,19 +671,25 @@ function download(url, path, chmod) {
 
 function webifyURL() {
   var url = 'http://sourceforge.net/projects/webify/files';
+  var version = '0.1.6.0';
+  var file = 'webify-' + version + '/download';
+  var fileExe = 'webify-' + version + '.exe/download';
   switch (process.platform) {
   case 'darwin':
-    url += '/mac/webify-0.1.6.0'
+    url += '/mac/' + file + '#4a7e954f43a86863e8abffd65506bd9f5382b147';
     break;
   case 'linux':
-    url += (process.arch === 'x64' ? '/linux' : '/linux32') + '/webify-0.1.6.0'
+    if (process.arch === 'x64') {
+      url += '/linux/' + file + '#d6e9e385261f746780b93635435890d664550c27';
+    } else {
+      url += '/linux32/' + file + '#5abbed821bf0ee3b329f11cafd3ece4452dbaa22';
+    }
     break;
   case 'win32':
-    url += '/windows/webify-0.1.6.0.exe'
+    url += '/windows/' + fileExe + '#09bec7dd32a8f099b0fc92b5e1e7207043ec0ccb';
     break;
   default:
-    grunt.fail.fatal('Can\'t download webify.');
+    grunt.fail.fatal('Can\'t download webify for your OS.');
   }
-  url += '/download';
   return url;
 }
