@@ -208,6 +208,10 @@ When it is an array, next URL in the array will be used if previous one fails
 to download. Download starts only when one of destination files is missing in
 the files object.
 
+You can add a hash tag and the file checksum hash at the end of the URL or the
+file location to verify the file after download completes. You can use the MD5,
+SHA-1, SHA-256 or SHA-512 algorithm.
+
 ## Examples
 
 ### Full options
@@ -240,7 +244,7 @@ grunt.initConfig({
           charsFilePattern: '\\.txt$'
         },
         download: {
-          'src/original.ttf': [
+          'src/original.ttf#3a15ae4faaeb955e0517dd5b2abb2f35f41c18cc': [
             'http://localhost:8000/fonts/WenQuanYiMicroHei.ttf',
             'http://localhost:3000/fonts/WenQuanYiMicroHei.ttf',
             'https://github.com/cghio/wqyfonts/raw/master/fonts/WenQuanYiMicroHei.ttf'

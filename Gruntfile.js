@@ -30,7 +30,7 @@ module.exports = function(grunt) {
             charsFilePattern: '\\.txt$'
           },
           download: {
-            'test/fixtures/original.ttf': [
+            'test/fixtures/original.ttf#3a15ae4faaeb955e0517dd5b2abb2f35f41c18cc': [
               'http://localhost:8000/test/fixtures/WenQuanYiMicroHei.ttf',
               'https://github.com/cghio/wqyfonts/raw/master/fonts/' +
                 'WenQuanYiMicroHei.ttf'

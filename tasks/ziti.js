@@ -52,11 +52,11 @@ module.exports = function(grunt) {
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
         for (var j = 0; j < downloadFiles.length; j++) {
-          var f = downloadFiles[j];
+          var f = downloadFiles[j].replace(/^(.*)#([a-f0-9]+)$/, '$1');
           if (file.src.indexOf(f) > -1) continue;
           for (var k = 0; k < file.orig.src.length; k++) {
             if (grunt.file.isMatch(file.orig.src[k], f)) {
-              downloadList.push(f);
+              downloadList.push(downloadFiles[j]);
             }
           }
         }
@@ -64,15 +64,16 @@ module.exports = function(grunt) {
       return downloadList.reduce(function(previous, current) {
         return previous.then(function() {
           return download(options.download[current], current).then(function() {
+            current = current.replace(/^(.*)#([a-f0-9]+)$/, '$1');
             for (var i = 0; i < files.length; i++) {
               var file = files[i];
               for (var j = 0; j < file.orig.src.length; j++) {
                 if (grunt.file.isMatch(file.orig.src[j], current)) {
-                  if (file.src.indexOf(f) === -1) file.src.push(f);
+                  if (file.src.indexOf(current) === -1) file.src.push(current);
                 }
               }
             }
-          }).catch(function(){ /* mute */ });
+          });
         });
       }, Q());
     }).
@@ -612,6 +613,17 @@ function download(url, path, chmod) {
   if (checksum) {
     url = checksum[1];
     checksum = checksum[2];
+  }
+  var checksum2 = path.match(/^(.*)#([a-f0-9]+)$/);
+  if (checksum2) {
+    path = checksum2[1];
+    checksum2 = checksum2[2];
+    if (!checksum) checksum = checksum2;
+  }
+  if (checksum2 && checksum !== checksum2) {
+    return Q.reject('Checksums of the URL and the file path are not the same.');
+  }
+  if (checksum) {
     if (checksum.length === 32) algorithm = [ 'md5', 'MD5' ];
     if (checksum.length === 64) algorithm = [ 'sha256', 'SHA-256' ];
     if (checksum.length === 128) algorithm = [ 'sha512', 'SHA-512' ];
