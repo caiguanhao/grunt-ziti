@@ -301,6 +301,12 @@ function gettextHTMLContent(bundle, content) {
       }
 
       addText = false;
+
+      // If the element is empty, then add all elements.
+      if(!elements.length) {
+	  return addText = true;
+      }
+
       for (var i = 0; i < elements.length; i++) {
         if (name === elements[i]) return addText = true;
       }
@@ -308,7 +314,7 @@ function gettextHTMLContent(bundle, content) {
         if (hasClass(attribs.class, classes[i])) return addText = true;
       }
       for (var i = 0; i < attributes.length; i++) {
-        if (attribs.hasOwnProperty(attributes[i])) {
+        if (attributes.length === 0 || attribs.hasOwnProperty(attributes[i])) {
           return addChars(bundle, attribs[attributes[i]]);
         }
       }
