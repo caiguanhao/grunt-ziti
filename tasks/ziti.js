@@ -307,8 +307,9 @@ function gettextHTMLContent(bundle, content) {
       for (var i = 0; i < classes.length; i++) {
         if (hasClass(attribs.class, classes[i])) return addText = true;
       }
+      // If the element is empty, then add all elements.
       for (var i = 0; i < attributes.length; i++) {
-        if (attribs.hasOwnProperty(attributes[i])) {
+        if (attributes.length === 0 || attribs.hasOwnProperty(attributes[i])) {
           return addChars(bundle, attribs[attributes[i]]);
         }
       }
