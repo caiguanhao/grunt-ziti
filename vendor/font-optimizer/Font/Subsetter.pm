@@ -1493,7 +1493,10 @@ sub subset {
 
     $self->{features} = $options->{features};
 
-    my $uid = substr(sha1_hex("$filename $chars"), 0, 16);
+    use Encode qw(encode_utf8 is_utf8);
+    my $source_string = "$filename $chars";
+    my $suitable = is_utf8($source_string) ? encode_utf8($source_string) : $source_string;
+    my $uid = substr(sha1_hex($suitable), 0, 16);
 
     if (not $self->{font}) {
         $self->preload($filename);
