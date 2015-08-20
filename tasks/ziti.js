@@ -4,6 +4,7 @@ var Q = require('q');
 
 var fontOptimizer = path.normalize(__dirname + '/../vendor/font-optimizer');
 var webifyPath = path.normalize(__dirname + '/../vendor/webify');
+if (process.platform === 'win32') webifyPath += '.exe';
 
 module.exports = function(grunt) {
 
