@@ -190,8 +190,12 @@ module.exports = function(grunt) {
   });
 
   grunt.log.clearWrite = function() {
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
+    if (process.stdout.clearLine) {
+      process.stdout.clearLine();
+      process.stdout.cursorTo(0);
+    } else {
+      grunt.log.write('\n');
+    }
     grunt.log.write.apply(null, arguments);
   };
 
