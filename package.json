@@ -1,6 +1,6 @@
 {
   "name": "grunt-ziti",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Subsetting, optimizing and converting large font files to smaller web fonts.",
   "scripts": {
     "test": "grunt test"
