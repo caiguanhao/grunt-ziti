@@ -532,7 +532,9 @@ function subset(bundle) {
   setTimeout(function() {
     deferred.notify([ 'write', 'Subsetting ' + bundle.originalSrc + '... ' ]);
   }, 0);
-  var subset = spawn('./subset.pl', [
+  var subset = spawn('perl', [
+    '-CA',
+    'subset.pl',
     '--charsfile=' + bundle.charsFile, bundle.src, bundle.dest
   ], {
     cwd: fontOptimizer
@@ -554,7 +556,8 @@ function obfuscate(bundle) {
   setTimeout(function() {
     deferred.notify([ 'write', 'Obfuscating... ' ]);
   }, 0);
-  var obfuscate = spawn('./obfuscate-font.pl', [
+  var obfuscate = spawn('perl', [
+    'obfuscate-font.pl',
     '--all', bundle.dest, bundle.optimizedFile
   ], {
     cwd: fontOptimizer
